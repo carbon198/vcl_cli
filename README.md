@@ -15,7 +15,7 @@ Specifically for admins, there are several commands like clone and move that are
 Clone the repo and then run the following command while in the vcl_cli directory:
 
 ```
-sudo gem build vcl.gemspec && sudo gem install ./vcl-0.1.8.gem && gem cleanup vcl
+sudo gem build vcl.gemspec && sudo gem install ./vcl-0.1.9.gem && gem cleanup vcl
 ```
 
 The same command also works to update to a new version.

@@ -1,6 +1,6 @@
 module VCL
   module Fetcher
-    def self.api_request(method, path, endpoint=:api, body="")
+    def self.api_request(method, path, endpoint=:api, body="",extra_headers={})
       headers = {"Accept" => "application/json", "Connection" => "close"}
 
       if endpoint == :app
@@ -8,18 +8,22 @@ module VCL
         headers["X-CSRF-Token"] = VCL::Cookies["fastly.csrf"] if VCL::Cookies["fastly.csrf"]
       end
 
-      headers["Cookie"] = "" if VCL::Cookies.length > 0
-      VCL::Cookies.each do |k,v|
-        headers["Cookie"] << "#{k}=#{v};"
+      if VCL::Token
+        headers["Fastly-Key"] = VCL::Token
+      else
+        headers["Cookie"] = "" if VCL::Cookies.length > 0
+        VCL::Cookies.each do |k,v|
+          headers["Cookie"] << "#{k}=#{v};"
+        end
       end
 
       headers["Content-Type"] = "application/x-www-form-urlencoded" if (method == :post || method == :put)
 
-      headers["Content-Type"] = "multipart/form-data; boundary=----TheBoundary" if (body.include? "form-data")
-
       if body.length > 0 && (body.is_a? String)
         headers["Content-Length"] = body.length
       end
+
+      headers.merge!(extra_headers) if extra_headers.count > 0
 
       url = "#{endpoint == :api ? VCL::FASTLY_API : VCL::FASTLY_APP}#{path}"
 

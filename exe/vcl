@@ -218,10 +218,12 @@ class VclAdmin < Thor
       body += "------TheBoundary\r\nContent-Disposition: form-data; name=\"main\"\r\n\r\n"
       body += "#{v["main"] ? "1" : "0"}\r\n------TheBoundary--\r\n"
 
+      headers = { "Content-Type" => "multipart/form-data; boundary=----TheBoundary" }
+
       if v["new"]
-        response = VCL::Fetcher.api_request(:post, "/service/#{id}/version/#{writable_version}/vcl", :api, body)
+        response = VCL::Fetcher.api_request(:post, "/service/#{id}/version/#{writable_version}/vcl", :api, body, headers)
       else
-        response = VCL::Fetcher.api_request(:put, "/service/#{id}/version/#{writable_version}/vcl/#{v["name"]}", :api, body)
+        response = VCL::Fetcher.api_request(:put, "/service/#{id}/version/#{writable_version}/vcl/#{v["name"]}", :api, body, headers)
       end
 
       say("#{v["name"]} uploaded to #{id}")
@@ -370,11 +372,17 @@ class VclAdmin < Thor
 
   desc "login", "Logs into the app. Required before doing anything else."
   def login
+    if VCL::Token
+      abort unless yes?("You already have an access token, are you sure you want to authenticate again?")
+    end
+    
     user = self.ask("Username: ")
     pass = self.ask("Password: ", :echo => false)
     resp = VCL::Fetcher.api_request(:post, "/login", :app, "user=#{user}&password=#{pass}")
 
     if resp["needs_two_factor_auth"]
+      two_factor = true
+
       say("\nTwo factor auth enabled on account, second factor needed.")
       code = ask('Please enter verification code:', echo: false)
 
@@ -386,6 +394,36 @@ class VclAdmin < Thor
     File.open(VCL::COOKIE_JAR , 'w+') {|f| f.write(JSON.dump(VCL::Cookies)) }
 
     say("Login successful!")
+
+    abort unless yes?("Would you like to create an API key for this application so you won't have to login in the future? \nNote: Per-User API keys are a beta Fastly feature and may not be enabled on your account. In order to enable this feature, please email support@fastly.com")
+
+    headers = {}
+    if (two_factor)
+      say("\nTwo factor auth enabled on account.")
+      code = ask('Please enter verification code again:', echo: false)
+      headers["Fastly-OTP"] = code
+    end
+
+    resp = VCL::Fetcher.api_request(:post, "/tokens", :api, "name=vcl_cli_token&username=#{user}&password=#{pass}", headers)
+
+    token = resp["access_token"]
+    token_id = resp["id"]
+
+    say("\n#{token_id} created.")
+
+    File.open(VCL::TOKEN_FILE , 'w+') {|f| f.write(token) }
+
+    resp = VCL::Fetcher.api_request(:get, "/tokens", :api, "", {"Fastly-Key" => token})
+    abort unless resp.count > 0
+
+    resp.each do |t|
+      next unless (t["name"] == "vcl_cli_token" && t["id"] != token_id)
+
+      if yes?("There was already a token created with the name vcl_cli_token. To avoid creating multiple tokens, should it be deleted?")
+        VCL::Fetcher.api_request(:delete, "/tokens/#{t["id"]}", :api, "", {"Fastly-Key" => token})
+        say("Token with id #{t["id"]} deleted.")
+      end
+    end
   end
 
   desc "version", "Displays version of the VCL gem."
