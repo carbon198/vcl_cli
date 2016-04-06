@@ -212,19 +212,7 @@ class VclAdmin < Thor
     abort unless yes?("Given the above diff, are you sure you want to upload your changes?")
 
     vcls.each do |k,v|
-      body = "------TheBoundary\r\nContent-Disposition: form-data; name=\"name\"\r\n\r\n#{v["name"]}\r\n"
-      body += "------TheBoundary\r\nContent-Disposition: form-data; name=\"content\"; filename=\"#{v["name"]}.vcl\"\r\n"
-      body += "Content-Type: application/octet-stream\r\n\r\n#{v["content"]}\r\n"
-      body += "------TheBoundary\r\nContent-Disposition: form-data; name=\"main\"\r\n\r\n"
-      body += "#{v["main"] ? "1" : "0"}\r\n------TheBoundary--\r\n"
-
-      headers = { "Content-Type" => "multipart/form-data; boundary=----TheBoundary" }
-
-      if v["new"]
-        response = VCL::Fetcher.api_request(:post, "/service/#{id}/version/#{writable_version}/vcl", :api, body, headers)
-      else
-        response = VCL::Fetcher.api_request(:put, "/service/#{id}/version/#{writable_version}/vcl/#{v["name"]}", :api, body, headers)
-      end
+      VCL::Fetcher.upload_vcl(id, writable_version, v["content"], v["name"], v["main"], v["new"])
 
       say("#{v["name"]} uploaded to #{id}")
     end
@@ -375,7 +363,7 @@ class VclAdmin < Thor
     if VCL::Token
       abort unless yes?("You already have an access token, are you sure you want to authenticate again?")
     end
-    
+
     user = self.ask("Username: ")
     pass = self.ask("Password: ", :echo => false)
     resp = VCL::Fetcher.api_request(:post, "/login", :app, "user=#{user}&password=#{pass}")

@@ -116,5 +116,21 @@ module VCL
     def self.unassume
       self.api_request(:post, "/admin/unassume", :app)
     end
+
+    def self.upload_vcl(service,version,content,name,is_main=true,is_new=false)
+      body = "------TheBoundary\r\nContent-Disposition: form-data; name=\"name\"\r\n\r\n#{name}\r\n"
+      body += "------TheBoundary\r\nContent-Disposition: form-data; name=\"content\"; filename=\"#{name}.vcl\"\r\n"
+      body += "Content-Type: application/octet-stream\r\n\r\n#{content}\r\n"
+      body += "------TheBoundary\r\nContent-Disposition: form-data; name=\"main\"\r\n\r\n"
+      body += "#{is_main ? "1" : "0"}\r\n------TheBoundary--\r\n"
+
+      headers = { "Content-Type" => "multipart/form-data; boundary=----TheBoundary" }
+
+      if is_new
+        response = VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", :api, body, headers)
+      else
+        response = VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/vcl/#{name}", :api, body, headers)
+      end
+    end
   end
 end
