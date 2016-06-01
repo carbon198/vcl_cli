@@ -63,7 +63,7 @@ module VCL
       service = self.api_request(:get, "/service/#{id}")
 
       service["versions"].each do |v|
-        if v["active"] == "1"
+        if v["active"] == true
           return v["number"]
         end
       end
@@ -75,7 +75,7 @@ module VCL
       active = nil
       version = nil
       service["versions"].each do |v|
-        if v["active"] == "1"
+        if v["active"] == true
           active = v["number"].to_i
         end
 
