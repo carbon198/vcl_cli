@@ -79,7 +79,7 @@ module VCL
           active = v["number"].to_i
         end
 
-        if active != nil && v["number"].to_i > active && v["locked"] == "0"
+        if active != nil && v["number"].to_i > active && v["locked"] == false     
           version = v["number"]
         end
       end
