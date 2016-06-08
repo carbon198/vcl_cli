@@ -1,14 +1,19 @@
 module VCL
   module Fetcher
-    def self.api_request(method, path, endpoint=:api, body="",extra_headers={})
+    def self.api_request(method, path, options)
+      options[:endpoint] ||= false
+      options[:body] ||= ""
+      options[:headers] ||= {}
+      options[:force_session] ||= false
+
       headers = {"Accept" => "application/json", "Connection" => "close"}
 
-      if endpoint == :app
+      if options[:endpoint] == :app
         headers["Referer"] = VCL::FASTLY_APP
         headers["X-CSRF-Token"] = VCL::Cookies["fastly.csrf"] if VCL::Cookies["fastly.csrf"]
       end
 
-      if VCL::Token
+      if VCL::Token && !options[:force_session]
         headers["Fastly-Key"] = VCL::Token
       else
         headers["Cookie"] = "" if VCL::Cookies.length > 0
@@ -19,15 +24,15 @@ module VCL
 
       headers["Content-Type"] = "application/x-www-form-urlencoded" if (method == :post || method == :put)
 
-      if body.length > 0 && (body.is_a? String)
-        headers["Content-Length"] = body.length
+      if options[:body].length > 0 && (options[:body].is_a? String)
+        headers["Content-Length"] = options[:body].length
       end
 
-      headers.merge!(extra_headers) if extra_headers.count > 0
+      headers.merge!(options[:headers]) if options[:headers].count > 0
 
-      url = "#{endpoint == :api ? VCL::FASTLY_API : VCL::FASTLY_APP}#{path}"
+      url = "#{options[:endpoint] == :api ? VCL::FASTLY_API : VCL::FASTLY_APP}#{path}"
 
-      response = Typhoeus.send(method.to_s, url, body: body, headers: headers)
+      response = Typhoeus.send(method.to_s, url, body: options[:body], headers: headers)
 
       case response.response_code
         when 200
@@ -120,11 +125,11 @@ module VCL
       user = self.api_request(:get, "/user/#{owner}")
       user_login = user["login"]
 
-      self.api_request(:post, "/admin/assume/#{URI.escape(user_login)}", :app)
+      self.api_request(:post, "/admin/assume/#{URI.escape(user_login)}", :endpoint => :app)
     end
 
     def self.unassume
-      self.api_request(:post, "/admin/unassume", :app)
+      self.api_request(:post, "/admin/unassume", :endpoint => :app)
     end
 
     def self.upload_vcl(service,version,content,name,is_main=true,is_new=false)
@@ -137,9 +142,9 @@ module VCL
       headers = { "Content-Type" => "multipart/form-data; boundary=----TheBoundary" }
 
       if is_new
-        response = VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", :api, body, headers)
+        response = VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, body: body, headers: headers})
       else
-        response = VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/vcl/#{name}", :api, body, headers)
+        response = VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/vcl/#{name}", {:endpoint => :api, body: body, headers: headers})
       end
     end
   end
