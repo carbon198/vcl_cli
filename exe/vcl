@@ -4,6 +4,14 @@ require "bundler/setup"
 require "vcl"
 
 class VclAdmin < Thor
+  desc "open DOMAIN", "Find the service ID for a domain and open the Fastly app. Options: --sierra"
+  option :sierra
+  def open(domain)
+    id = VCL::Fetcher.domain_to_service_id(domain)
+
+    Launchy.open(VCL::FASTLY_APP + (options[:sierra] ? VCL::SIERRA_PATH : VCL::TANGO_PATH) + id)
+  end
+
   desc "download VCL_NAME=all", "Download VCLs. Options: --service, --version"
   option :service
   option :version
@@ -77,7 +85,7 @@ class VclAdmin < Thor
 
     VCL::Fetcher.assume_account_owner(customer_id)
 
-    waf = VCL::Fetcher.api_request(:get, "/service/#{id}/wafs/4o0eNn2qV1zmqfosNx4CwQ/ruleset", :app)
+    waf = VCL::Fetcher.api_request(:get, "/service/#{id}/wafs/4o0eNn2qV1zmqfosNx4CwQ/ruleset", :endpoint => :app)
     
     VCL::Fetcher.unassume
 
@@ -173,8 +181,9 @@ class VclAdmin < Thor
 
     writable_version = VCL::Fetcher.get_writable_version(id) unless options[:version]
     writable_version ||= options[:version].to_i
+    active_version = VCL::Fetcher.get_active_version(id);
 
-    old_vcls = VCL::Fetcher.get_vcl(id, writable_version)
+    old_vcls = VCL::Fetcher.get_vcl(id, active_version)
 
     main_found = false
 
@@ -268,7 +277,7 @@ class VclAdmin < Thor
   def move(service_id, customer_id)
     pass = self.ask("This API endpoint requires your app.fastly.com password: ", :echo => false)
 
-    resp = VCL::Fetcher.api_request(:put, "/service/#{service_id}/change_customer/#{customer_id}?password=#{URI.escape(pass)}", :app)
+    resp = VCL::Fetcher.api_request(:put, "/service/#{service_id}/change_customer/#{customer_id}?password=#{URI.escape(pass)}", :endpoint => :app)
 
     say("\nService successfully moved to #{customer_id}")
   end
@@ -277,7 +286,7 @@ class VclAdmin < Thor
   def create_service(id, name, domain, origin)
     VCL::Fetcher.assume_account_owner(id)
 
-    service = VCL::Fetcher.api_request(:post, "/quickstart", :app, "name=#{URI.escape(name)}&address=#{URI.escape(origin)}&port=80&domain=#{URI.escape(domain)}")
+    service = VCL::Fetcher.api_request(:post, "/quickstart", { :endpoint => :app, body: "name=#{URI.escape(name)}&address=#{URI.escape(origin)}&port=80&domain=#{URI.escape(domain)}"})
 
     VCL::Fetcher.unassume
 
@@ -299,16 +308,16 @@ class VclAdmin < Thor
     case action
     when "create"
       abort "Must specify name for dictionary" unless name
-      VCL::Fetcher.api_request(:post, "/service/#{id}/version/#{version}/dictionary", :api, "name=#{URI.escape(name)}")
+      VCL::Fetcher.api_request(:post, "/service/#{id}/version/#{version}/dictionary", body: "name=#{URI.escape(name)}")
 
       say("Dictionary #{name} created.")
     when "delete"
       abort "Must specify name for dictionary" unless name
-      VCL::Fetcher.api_request(:delete, "/service/#{id}/version/#{version}/dictionary/#{name}", :api)
+      VCL::Fetcher.api_request(:delete, "/service/#{id}/version/#{version}/dictionary/#{name}")
 
       say("Dictionary #{name} deleted.")
     when "list"
-      resp = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary", :api)
+      resp = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary")
 
       say("No dictionaries on service in this version.") unless resp.length > 0
 
@@ -318,28 +327,28 @@ class VclAdmin < Thor
     when "add"
       abort "Must specify name for dictionary" unless name
       abort "Must specify key and value for dictionary item" unless (key && value)
-      dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}", :api)
-      VCL::Fetcher.api_request(:post, "/service/#{id}/dictionary/#{dict["id"]}/item", :api, "item_key=#{key}&item_value=#{value}")
+      dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}")
+      VCL::Fetcher.api_request(:post, "/service/#{id}/dictionary/#{dict["id"]}/item", body: "item_key=#{key}&item_value=#{value}")
 
       say("Dictionary item #{key} created with value #{value}.")
     when "update"
       abort "Must specify name for dictionary" unless name
       abort "Must specify key and value for dictionary item" unless (key && value)
-      dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}", :api)
-      VCL::Fetcher.api_request(:put, "/service/#{id}/dictionary/#{dict["id"]}/item/#{key}", :api, "item_value=#{value}")   
+      dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}")
+      VCL::Fetcher.api_request(:put, "/service/#{id}/dictionary/#{dict["id"]}/item/#{key}", body: "item_value=#{value}")   
 
       say("Dictionary item #{key} set to #{value}.")   
     when "remove"
       abort "Must specify name for dictionary" unless name
       abort "Must specify key for dictionary item" unless key
-      dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}", :api)
-      VCL::Fetcher.api_request(:delete, "/service/#{id}/dictionary/#{dict["id"]}/item/#{key}", :api)
+      dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}")
+      VCL::Fetcher.api_request(:delete, "/service/#{id}/dictionary/#{dict["id"]}/item/#{key}")
 
       say("Item #{key} removed from dictionary #{name}.")
     when "list_items"
       abort "Must specify name for dictionary" unless name
-      dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}", :api)
-      resp = VCL::Fetcher.api_request(:get, "/service/#{id}/dictionary/#{dict["id"]}/items", :api)
+      dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}")
+      resp = VCL::Fetcher.api_request(:get, "/service/#{id}/dictionary/#{dict["id"]}/items")
 
       say("No items in dictionary.") unless resp.length > 0
       resp.each do |i|
@@ -347,11 +356,11 @@ class VclAdmin < Thor
       end
     when "bulk_add"
       abort "Must specify name for dictionary" unless name
-      dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}", :api)
+      dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}")
 
       items = JSON.parse(key)
       items.each do |k,v|
-        VCL::Fetcher.api_request(:post, "/service/#{id}/dictionary/#{dict["id"]}/item", :api, "item_key=#{k}&item_value=#{v}")
+        VCL::Fetcher.api_request(:post, "/service/#{id}/dictionary/#{dict["id"]}/item", body: "item_key=#{k}&item_value=#{v}")
 
         say("#{k} added to #{name} with value #{v}")
       end
@@ -366,7 +375,7 @@ class VclAdmin < Thor
 
     user = self.ask("Username: ")
     pass = self.ask("Password: ", :echo => false)
-    resp = VCL::Fetcher.api_request(:post, "/login", :app, "user=#{user}&password=#{pass}")
+    resp = VCL::Fetcher.api_request(:post, "/login", { :endpoint => :app, body: "user=#{user}&password=#{pass}"})
 
     if resp["needs_two_factor_auth"]
       two_factor = true
@@ -374,7 +383,7 @@ class VclAdmin < Thor
       say("\nTwo factor auth enabled on account, second factor needed.")
       code = ask('Please enter verification code:', echo: false)
 
-      resp = VCL::Fetcher.api_request(:post, "/two_factor_auth/verify", :app, "token=#{code}")
+      resp = VCL::Fetcher.api_request(:post, "/two_factor_auth/verify", {force_session: true, :endpoint => :app, body: "token=#{code}"} )
     else
       say("\nTwo factor auth is NOT enabled. You should go do that immediately.")
     end
@@ -392,7 +401,7 @@ class VclAdmin < Thor
       headers["Fastly-OTP"] = code
     end
 
-    resp = VCL::Fetcher.api_request(:post, "/tokens", :api, "name=vcl_cli_token&username=#{user}&password=#{pass}", headers)
+    resp = VCL::Fetcher.api_request(:post, "/tokens", {force_session: true, :endpoint => :api, body: "name=vcl_cli_token&scope=root&username=#{user}&password=#{pass}", headers: headers})
 
     token = resp["access_token"]
     token_id = resp["id"]
@@ -401,14 +410,14 @@ class VclAdmin < Thor
 
     File.open(VCL::TOKEN_FILE , 'w+') {|f| f.write(token) }
 
-    resp = VCL::Fetcher.api_request(:get, "/tokens", :api, "", {"Fastly-Key" => token})
+    resp = VCL::Fetcher.api_request(:get, "/tokens", { force_session: true, headers: {"Fastly-Key" => token}})
     abort unless resp.count > 0
 
     resp.each do |t|
       next unless (t["name"] == "vcl_cli_token" && t["id"] != token_id)
 
       if yes?("There was already a token created with the name vcl_cli_token. To avoid creating multiple tokens, should it be deleted?")
-        VCL::Fetcher.api_request(:delete, "/tokens/#{t["id"]}", :api, "", {"Fastly-Key" => token})
+        VCL::Fetcher.api_request(:delete, "/tokens/#{t["id"]}", {headers: {"Fastly-Key" => token}})
         say("Token with id #{t["id"]} deleted.")
       end
     end

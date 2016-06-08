@@ -3,6 +3,7 @@ require "thor"
 require "diffy"
 require "json"
 require "uri"
+require "launchy"
 
 require "vcl/version"
 require "vcl/fetcher"
@@ -13,6 +14,8 @@ module VCL
   TOKEN_FILE = ENV['HOME'] + "/vcl_token"
   FASTLY_API = "https://api.fastly.com"
   FASTLY_APP = "https://app.fastly.com"
+  TANGO_PATH = "/canary/configure/services/"
+  SIERRA_PATH = "/#configure/"
 
   Cookies = File.exist?(VCL::COOKIE_JAR) ? JSON.parse(File.read(VCL::COOKIE_JAR)) : {}
   Token = File.exist?(VCL::TOKEN_FILE) ? File.read(VCL::TOKEN_FILE) : false
