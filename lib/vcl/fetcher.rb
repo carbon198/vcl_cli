@@ -59,6 +59,16 @@ module VCL
       end
     end
 
+    def self.domain_to_service_id(domain)
+      response = Typhoeus::Request.new(VCL::FASTLY_APP, method:"FASTLYSERVICEMATCH", headers: { :host => domain}).run
+
+      abort "Failed to fetch Fastly service ID or service ID does not exist" if response.response_code != 204
+
+      abort "Fastly response did not contain service ID" unless response.headers["Fastly-Service-Id"]
+
+      return response.headers["Fastly-Service-Id"]
+    end
+
     def self.get_active_version(id)
       service = self.api_request(:get, "/service/#{id}")
 
