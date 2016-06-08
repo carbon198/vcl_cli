@@ -1,6 +1,6 @@
 module VCL
   module Fetcher
-    def self.api_request(method, path, options)
+    def self.api_request(method, path, options={})
       options[:endpoint] ||= false
       options[:body] ||= ""
       options[:headers] ||= {}

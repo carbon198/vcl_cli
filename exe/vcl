@@ -181,8 +181,9 @@ class VclAdmin < Thor
 
     writable_version = VCL::Fetcher.get_writable_version(id) unless options[:version]
     writable_version ||= options[:version].to_i
+    active_version = VCL::Fetcher.get_active_version(id);
 
-    old_vcls = VCL::Fetcher.get_vcl(id, writable_version)
+    old_vcls = VCL::Fetcher.get_vcl(id, active_version)
 
     main_found = false
 
