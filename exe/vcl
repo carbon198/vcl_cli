@@ -4,6 +4,18 @@ require "bundler/setup"
 require "vcl"
 
 class VclAdmin < Thor
+  desc "purge_all", "Purge all content from a service. Options: --service"
+  option :service
+  def purge_all
+    parsed_id = VCL::Utils.parse_directory
+
+    id = VCL::Utils.parse_directory
+
+    abort "could not parse service id from directory" unless (id || options[:service])
+
+    VCL::Fetcher.api_request(:post, "/service/#{id}/purge_all")
+  end
+
   desc "open DOMAIN", "Find the service ID for a domain and open the Fastly app. Options: --sierra"
   option :sierra
   def open(domain)
@@ -401,6 +413,7 @@ class VclAdmin < Thor
       headers["Fastly-OTP"] = code
     end
 
+    VCL::Fetcher.api_request(:post, "/sudo", {force_session: true, :endpoint => :api, body: "username=#{user}&password=#{pass}", headers: headers})
     resp = VCL::Fetcher.api_request(:post, "/tokens", {force_session: true, :endpoint => :api, body: "name=vcl_cli_token&scope=root&username=#{user}&password=#{pass}", headers: headers})
 
     token = resp["access_token"]

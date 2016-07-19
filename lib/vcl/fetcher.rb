@@ -30,7 +30,7 @@ module VCL
 
       headers.merge!(options[:headers]) if options[:headers].count > 0
 
-      url = "#{options[:endpoint] == :api ? VCL::FASTLY_API : VCL::FASTLY_APP}#{path}"
+      url = URI.encode("#{options[:endpoint] == :api ? VCL::FASTLY_API : VCL::FASTLY_APP}#{path}")
 
       response = Typhoeus.send(method.to_s, url, body: options[:body], headers: headers)
 
@@ -46,6 +46,7 @@ module VCL
         when 400
           abort "400: Bad API request--got bad request response. Sometimes this means what you're looking for doesn't exist. Method: #{method.to_s}, Path: #{path}"
         when 403
+          p response
           abort "403: Access Denied by API. Run login command to authenticate. Method: #{method.to_s}, Path: #{path}"
         when 404
           abort "404: Service does not exist or bad path requested. Method: #{method.to_s}, Path: #{path}"
