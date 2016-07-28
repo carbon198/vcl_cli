@@ -14,14 +14,15 @@ class VclAdmin < Thor
     abort "could not parse service id from directory" unless (id || options[:service])
 
     VCL::Fetcher.api_request(:post, "/service/#{id}/purge_all")
+
+    say("Purge all on #{id} completed.")
   end
 
-  desc "open DOMAIN", "Find the service ID for a domain and open the Fastly app. Options: --sierra"
-  option :sierra
+  desc "open DOMAIN", "Find the service ID for a domain and open the Fastly app."
   def open(domain)
     id = VCL::Fetcher.domain_to_service_id(domain)
 
-    Launchy.open(VCL::FASTLY_APP + (options[:sierra] ? VCL::SIERRA_PATH : VCL::TANGO_PATH) + id)
+    Launchy.open(VCL::FASTLY_APP + VCL::TANGO_PATH + id)
   end
 
   desc "download VCL_NAME=all", "Download VCLs. Options: --service, --version"
@@ -289,7 +290,7 @@ class VclAdmin < Thor
   def move(service_id, customer_id)
     pass = self.ask("This API endpoint requires your app.fastly.com password: ", :echo => false)
 
-    resp = VCL::Fetcher.api_request(:put, "/service/#{service_id}/change_customer/#{customer_id}?password=#{URI.escape(pass)}", :endpoint => :app)
+    resp = VCL::Fetcher.api_request(:put, "/service/#{service_id}/change_customer/#{customer_id}?password=#{url_encode(pass)}", :endpoint => :app)
 
     say("\nService successfully moved to #{customer_id}")
   end
@@ -387,7 +388,7 @@ class VclAdmin < Thor
 
     user = self.ask("Username: ")
     pass = self.ask("Password: ", :echo => false)
-    resp = VCL::Fetcher.api_request(:post, "/login", { :endpoint => :app, body: "user=#{user}&password=#{pass}"})
+    resp = VCL::Fetcher.api_request(:post, "/login", { :endpoint => :app, body: "user=#{url_encode(user)}&password=#{url_encode(pass)}"})
 
     if resp["needs_two_factor_auth"]
       two_factor = true
@@ -403,18 +404,13 @@ class VclAdmin < Thor
     File.open(VCL::COOKIE_JAR , 'w+') {|f| f.write(JSON.dump(VCL::Cookies)) }
 
     say("Login successful!")
-
-    abort unless yes?("Would you like to create an API key for this application so you won't have to login in the future? \nNote: Per-User API keys are a beta Fastly feature and may not be enabled on your account. In order to enable this feature, please email support@fastly.com")
+    say("Creating root scoped token...")
 
     headers = {}
-    if (two_factor)
-      say("\nTwo factor auth enabled on account.")
-      code = ask('Please enter verification code again:', echo: false)
-      headers["Fastly-OTP"] = code
-    end
+    headers["Fastly-OTP"] = code
 
-    VCL::Fetcher.api_request(:post, "/sudo", {force_session: true, :endpoint => :api, body: "username=#{user}&password=#{pass}", headers: headers})
-    resp = VCL::Fetcher.api_request(:post, "/tokens", {force_session: true, :endpoint => :api, body: "name=vcl_cli_token&scope=root&username=#{user}&password=#{pass}", headers: headers})
+    VCL::Fetcher.api_request(:post, "/sudo", {force_session: true, :endpoint => :api, body: "user=#{url_encode(user)}&password=#{url_encode(pass)}", headers: headers})
+    resp = VCL::Fetcher.api_request(:post, "/tokens", {force_session: true, :endpoint => :api, body: "name=vcl_cli_token&scope=root&user=#{url_encode(user)}&password=#{url_encode(pass)}", headers: headers})
 
     token = resp["access_token"]
     token_id = resp["id"]
@@ -423,14 +419,14 @@ class VclAdmin < Thor
 
     File.open(VCL::TOKEN_FILE , 'w+') {|f| f.write(token) }
 
-    resp = VCL::Fetcher.api_request(:get, "/tokens", { force_session: true, headers: {"Fastly-Key" => token}})
+    resp = VCL::Fetcher.api_request(:get, "/tokens", { headers: {"Fastly-Key" => token}})
     abort unless resp.count > 0
 
     resp.each do |t|
       next unless (t["name"] == "vcl_cli_token" && t["id"] != token_id)
 
       if yes?("There was already a token created with the name vcl_cli_token. To avoid creating multiple tokens, should it be deleted?")
-        VCL::Fetcher.api_request(:delete, "/tokens/#{t["id"]}", {headers: {"Fastly-Key" => token}})
+        VCL::Fetcher.api_request(:delete, "/tokens/#{t["id"]}", {headers: {"Fastly-Key" => token}, expected_response: 204})
         say("Token with id #{t["id"]} deleted.")
       end
     end
