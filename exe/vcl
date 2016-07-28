@@ -18,12 +18,11 @@ class VclAdmin < Thor
     say("Purge all on #{id} completed.")
   end
 
-  desc "open DOMAIN", "Find the service ID for a domain and open the Fastly app. Options: --sierra"
-  option :sierra
+  desc "open DOMAIN", "Find the service ID for a domain and open the Fastly app."
   def open(domain)
     id = VCL::Fetcher.domain_to_service_id(domain)
 
-    Launchy.open(VCL::FASTLY_APP + (options[:sierra] ? VCL::SIERRA_PATH : VCL::TANGO_PATH) + id)
+    Launchy.open(VCL::FASTLY_APP + VCL::TANGO_PATH + id)
   end
 
   desc "download VCL_NAME=all", "Download VCLs. Options: --service, --version"
