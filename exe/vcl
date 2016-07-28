@@ -402,6 +402,7 @@ class VclAdmin < Thor
     end
 
     File.open(VCL::COOKIE_JAR , 'w+') {|f| f.write(JSON.dump(VCL::Cookies)) }
+    File.chmod(0600, VCL::COOKIE_JAR)
 
     say("Login successful!")
     say("Creating root scoped token...")
@@ -418,6 +419,7 @@ class VclAdmin < Thor
     say("\n#{token_id} created.")
 
     File.open(VCL::TOKEN_FILE , 'w+') {|f| f.write(token) }
+    File.chmod(0600, VCL::TOKEN_FILE)
 
     resp = VCL::Fetcher.api_request(:get, "/tokens", { headers: {"Fastly-Key" => token}})
     abort unless resp.count > 0
