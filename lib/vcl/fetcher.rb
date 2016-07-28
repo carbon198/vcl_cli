@@ -1,16 +1,18 @@
 module VCL
   module Fetcher
     def self.api_request(method, path, options={})
-      options[:endpoint] ||= false
+      options[:endpoint] ||= :api
       options[:body] ||= ""
       options[:headers] ||= {}
       options[:force_session] ||= false
+      options[:expected_response] ||= 200
 
       headers = {"Accept" => "application/json", "Connection" => "close"}
 
       if options[:endpoint] == :app
         headers["Referer"] = VCL::FASTLY_APP
         headers["X-CSRF-Token"] = VCL::Cookies["fastly.csrf"] if VCL::Cookies["fastly.csrf"]
+        headers["Fastly-API-Request"] = "true"
       end
 
       if VCL::Token && !options[:force_session]
@@ -24,18 +26,20 @@ module VCL
 
       headers["Content-Type"] = "application/x-www-form-urlencoded" if (method == :post || method == :put)
 
-      if options[:body].length > 0 && (options[:body].is_a? String)
-        headers["Content-Length"] = options[:body].length
-      end
-
       headers.merge!(options[:headers]) if options[:headers].count > 0
 
-      url = URI.encode("#{options[:endpoint] == :api ? VCL::FASTLY_API : VCL::FASTLY_APP}#{path}")
+      url = "#{options[:endpoint] == :api ? VCL::FASTLY_API : VCL::FASTLY_APP}#{path}"
 
-      response = Typhoeus.send(method.to_s, url, body: options[:body], headers: headers)
+      body = options[:body]
+
+      if body.length > 0 && (body.is_a? String)
+        headers["Content-Length"] = body.length
+      end
+
+      response = Typhoeus.send(method.to_s, url, body: body, headers: headers)
 
       case response.response_code
-        when 200
+        when options[:expected_response]
           if response.headers["Set-Cookie"]
             response.headers["Set-Cookie"] = [response.headers["Set-Cookie"]] if response.headers["Set-Cookie"].is_a? String
             response.headers["Set-Cookie"].each do |c|
@@ -46,7 +50,6 @@ module VCL
         when 400
           abort "400: Bad API request--got bad request response. Sometimes this means what you're looking for doesn't exist. Method: #{method.to_s}, Path: #{path}"
         when 403
-          p response
           abort "403: Access Denied by API. Run login command to authenticate. Method: #{method.to_s}, Path: #{path}"
         when 404
           abort "404: Service does not exist or bad path requested. Method: #{method.to_s}, Path: #{path}"
@@ -56,10 +59,12 @@ module VCL
           abort "API responded with status #{response.response_code}. Method: #{method.to_s}, Path: #{path}"
       end
 
-      #puts JSON.pretty_generate(JSON.parse(response.response_body))
-
       if response.response_body.length > 1
-        return JSON.parse(response.response_body) 
+        begin
+          return JSON.parse(response.response_body)
+        rescue JSON::ParserError
+          abort "Failed to parse JSON response from Fastly API"
+        end
       else
         return {}
       end
