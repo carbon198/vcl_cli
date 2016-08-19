@@ -142,6 +142,11 @@ class VclAdmin < Thor
     v1_vcls = VCL::Fetcher.get_vcl(id1, v1, options[:generated])
     v2_vcls = VCL::Fetcher.get_vcl(id2, v2, options[:generated])
 
+    unless (v1_vcls && v2_vcls)
+      say("There is no custom VCL on #{v1_vcls ? id2 : id1}, use the --generated flag if you wanted to diff the generated VCL.")
+      abort
+    end
+
     if options[:generated]
       say(VCL::Utils.diff_generated(v1_vcls,v2_vcls))
     else
