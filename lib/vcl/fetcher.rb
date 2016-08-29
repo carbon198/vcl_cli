@@ -7,7 +7,7 @@ module VCL
       options[:force_session] ||= false
       options[:expected_response] ||= 200
 
-      headers = {"Accept" => "application/json", "Connection" => "close"}
+      headers = {"Accept" => "application/json", "Connection" => "close", "User-Agent" => "For those about to POST, we salute you"}
 
       if options[:endpoint] == :app
         headers["Referer"] = VCL::FASTLY_APP
