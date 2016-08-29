@@ -126,20 +126,6 @@ module VCL
       end
     end
 
-    def self.assume_account_owner(id)
-      customer = self.api_request(:get, "/customer/#{id}")
-      owner = customer["owner_id"]
-
-      user = self.api_request(:get, "/user/#{owner}")
-      user_login = user["login"]
-
-      self.api_request(:post, "/admin/assume/#{URI.escape(user_login)}", :endpoint => :app)
-    end
-
-    def self.unassume
-      self.api_request(:post, "/admin/unassume", :endpoint => :app)
-    end
-
     def self.upload_vcl(service,version,content,name,is_main=true,is_new=false)
       body = "------TheBoundary\r\nContent-Disposition: form-data; name=\"name\"\r\n\r\n#{name}\r\n"
       body += "------TheBoundary\r\nContent-Disposition: form-data; name=\"content\"; filename=\"#{name}.vcl\"\r\n"

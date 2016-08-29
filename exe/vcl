@@ -335,15 +335,14 @@ class VclAdmin < Thor
     say("\nService successfully moved to #{customer_id}")
   end
 
-  desc "create_service CUSTOMER_ID SERVICE_NAME DOMAIN ORIGIN", "Create a blank service for a customer."
-  def create_service(id, name, domain, origin)
-    VCL::Fetcher.assume_account_owner(id)
+  desc "create_service CUSTOMER_ID SERVICE_NAME", "Create a blank service on behalf of a customer."
+  def create_service(id, name)
+    say("This command works by creating a service on your account and moving it to the target account. It will prompt you for your password.")
+    service = VCL::Fetcher.api_request(:post, "/service", { body: "name=#{URI.escape(name)}"})
 
-    service = VCL::Fetcher.api_request(:post, "/quickstart", { :endpoint => :app, body: "name=#{URI.escape(name)}&address=#{URI.escape(origin)}&port=80&domain=#{URI.escape(domain)}"})
+    self.move(service["id"],id)
 
-    VCL::Fetcher.unassume
-
-    say("Service #{service["service"]["versions"][0]["service_id"]} has been created. If you are already on the configure tab you may need to refresh.")
+    say("Service #{service["id"]} has been created. If you are already on the configure tab you may need to refresh.")
   end
 
   desc "dictionary ACTION DICTIONARY_NAME=none KEY=none VALUE=none", "Manipulate edge dictionaries. Actions: create, delete, list, add, update, remove, list_items, bulk_add. Options: --service --version"
