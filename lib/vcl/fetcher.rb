@@ -59,6 +59,8 @@ module VCL
           abort "API responded with status #{response.response_code}. Method: #{method.to_s}, Path: #{path}"
       end
 
+      return response.response_body if (response.headers["Content-Type"] != "application/json")
+
       if response.response_body.length > 1
         begin
           return JSON.parse(response.response_body)
