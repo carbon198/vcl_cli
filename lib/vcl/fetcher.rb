@@ -38,25 +38,32 @@ module VCL
 
       response = Typhoeus.send(method.to_s, url, body: body, headers: headers)
 
-      case response.response_code
-        when options[:expected_response]
-          if response.headers["Set-Cookie"]
-            response.headers["Set-Cookie"] = [response.headers["Set-Cookie"]] if response.headers["Set-Cookie"].is_a? String
-            response.headers["Set-Cookie"].each do |c|
-              name, value = c.match(/^([^=]*)=([^;]*).*/i).captures
-              VCL::Cookies[name] = value
-            end
+      if response.response_code == options[:expected_response]
+        if response.headers["Set-Cookie"]
+          response.headers["Set-Cookie"] = [response.headers["Set-Cookie"]] if response.headers["Set-Cookie"].is_a? String
+          response.headers["Set-Cookie"].each do |c|
+            name, value = c.match(/^([^=]*)=([^;]*).*/i).captures
+            VCL::Cookies[name] = value
           end
-        when 400
-          abort "400: Bad API request--got bad request response. Sometimes this means what you're looking for doesn't exist. Method: #{method.to_s}, Path: #{path}"
-        when 403
-          abort "403: Access Denied by API. Run login command to authenticate. Method: #{method.to_s}, Path: #{path}"
-        when 404
-          abort "404: Service does not exist or bad path requested. Method: #{method.to_s}, Path: #{path}"
-        when 503
-          abort "503: API is offline. Method: #{method.to_s}, Path: #{path}"
-        else
-          abort "API responded with status #{response.response_code}. Method: #{method.to_s}, Path: #{path}"
+        end
+      else
+        case response.response_code
+          when 400
+            error = "400: Bad API request--got bad request response. Sometimes this means what you're looking for doesn't exist."
+          when 403
+            error = "403: Access Denied by API. Run login command to authenticate."
+          when 404
+            error = "404: Service does not exist or bad path requested."
+          when 503
+            error = "503: API is offline."
+          else
+            error = "API responded with status #{response.response_code}."
+        end
+
+        error += " Method: #{method.to_s}, Path: #{path}\n"
+        error += "Message from API: #{response.response_body}"
+
+        abort error
       end
 
       return response.response_body if (response.headers["Content-Type"] != "application/json")
