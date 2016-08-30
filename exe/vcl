@@ -483,7 +483,7 @@ class VclAdmin < Thor
       next unless (t["name"] == "vcl_cli_token" && t["id"] != token_id)
 
       if yes?("There was already a token created with the name vcl_cli_token. To avoid creating multiple tokens, should it be deleted?")
-        VCL::Fetcher.api_request(:delete, "/tokens/#{t["id"]}", {headers: {"Fastly-Key" => token}, expected_response: 204})
+        VCL::Fetcher.api_request(:delete, "/tokens/#{t["id"]}", {headers: {"Fastly-Key" => token}, expected_responses: [204]})
         say("Token with id #{t["id"]} deleted.")
       end
     end

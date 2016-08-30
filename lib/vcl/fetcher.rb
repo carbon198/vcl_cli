@@ -5,7 +5,7 @@ module VCL
       options[:body] ||= ""
       options[:headers] ||= {}
       options[:force_session] ||= false
-      options[:expected_response] ||= 200
+      options[:expected_responses] ||= [200]
 
       headers = {"Accept" => "application/json", "Connection" => "close", "User-Agent" => "For those about to POST, we salute you"}
 
@@ -38,7 +38,7 @@ module VCL
 
       response = Typhoeus.send(method.to_s, url, body: body, headers: headers)
 
-      if response.response_code == options[:expected_response]
+      if options[:expected_responses].include?(response.response_code)
         if response.headers["Set-Cookie"]
           response.headers["Set-Cookie"] = [response.headers["Set-Cookie"]] if response.headers["Set-Cookie"].is_a? String
           response.headers["Set-Cookie"].each do |c|
@@ -142,11 +142,15 @@ module VCL
 
       headers = { "Content-Type" => "multipart/form-data; boundary=----TheBoundary" }
 
+      # try to create, if that fails, update
       if is_new
-        response = VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, body: body, headers: headers})
-      else
-        response = VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/vcl/#{name}", {:endpoint => :api, body: body, headers: headers})
+        response = VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, body: body, headers: headers, expected_responses:[200,409]})
+        if response["msg"] != "Duplicate record"
+          return
+        end
       end
+
+      response = VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/vcl/#{name}", {:endpoint => :api, body: body, headers: headers})
     end
   end
 end
