@@ -138,62 +138,86 @@ class VclAdmin < Thor
   end
 
   desc "diff SERVICE_ID VERSION1 VERSION2", "Diff two versions on the same service. Options: --generated"
+  option :version1
+  option :version2
+  option :service1
+  option :service2
   option :generated
-  def diff(id,v1,v2)
-    v1_vcls = VCL::Fetcher.get_vcl(id, v1, options[:generated])
-    v2_vcls = VCL::Fetcher.get_vcl(id, v2, options[:generated])
+  def diff
+    if !options[:service1]
+      service1 = VCL::Utils.parse_directory
+      abort "Could not parse service id from directory" unless service1
+    else
+      service1 = options[:service1]
+    end
+    if !options[:service2]
+      service2 = VCL::Utils.parse_directory
+      abort "Could not parse service id from directory" unless service2
+    else
+      service2 = options[:service2]
+    end
+
+    # if both are specified, diff them
+    if options[:version1] && options[:version2]
+      version1 = options[:version1]
+      version2 = options[:version2]
+    end
+    # if version1 is not specified, diff local with version 2
+    if !options[:version1] && options[:version2]
+      version1 = false
+      version2 = options[:version2]
+    end
+    # if version2 is not specified, diff local with version 1
+    if options[:version1] && !options[:version2]
+      version1 = options[:version1]
+      version2 = false
+    end
+    # if neither are specified, diff local with active version
+    if !options[:version1] && !options[:version2]
+      version1 = VCL::Fetcher.get_active_version(service2)
+      version2 = false
+    end
+
+    say("Diffing#{options[:generated] ? " generated VCL for" : ""} #{service1} #{version1 ? "version "+version1.to_s : "local VCL"} with #{service2} #{version2 ? "version "+version2.to_s : "local VCL"}.")
+
+    if version1
+      v1_vcls = VCL::Fetcher.get_vcl(service1, version1,options[:generated])
+    else
+      abort "Cannot diff generated VCL with local VCL" if options[:generated]
+      Dir.foreach(Dir.pwd) do |p|
+        next unless File.file?(p)
+        next unless p =~ /\.vcl$/
+
+        v1_vcls ||= Array.new
+        v1_vcls << {
+          "name" => p.chomp(".vcl"),
+          "content" => File.read(p)
+        }
+      end
+    end
+
+    if version2
+      v2_vcls = VCL::Fetcher.get_vcl(service2, version2,options[:generated])
+    else
+      abort "Cannot diff generated VCL with local VCL" if options[:generated]
+      Dir.foreach(Dir.pwd) do |p|
+        next unless File.file?(p)
+        next unless p =~ /\.vcl$/
+
+        v2_vcls ||= Array.new
+        v2_vcls << {
+          "name" => p.chomp(".vcl"),
+          "content" => File.read(p)
+        }
+      end
+    end
 
     if options[:generated]
       say(VCL::Utils.diff_generated(v1_vcls,v2_vcls))
     else
       say(VCL::Utils.diff_versions(v1_vcls,v2_vcls))
     end
-  end
 
-  desc "diff_services SERVICE_ID1 VERSION1 SERVICE_ID2 VERSION2", "Diff versions on two different services. Options: --generated"
-  option :generated
-  def diff_services(id1,v1,id2,v2)
-    v1_vcls = VCL::Fetcher.get_vcl(id1, v1, options[:generated])
-    v2_vcls = VCL::Fetcher.get_vcl(id2, v2, options[:generated])
-
-    unless (v1_vcls && v2_vcls)
-      say("There is no custom VCL on #{v1_vcls ? id2 : id1}, use the --generated flag if you wanted to diff the generated VCL.")
-      abort
-    end
-
-    if options[:generated]
-      say(VCL::Utils.diff_generated(v1_vcls,v2_vcls))
-    else
-      say(VCL::Utils.diff_versions(v1_vcls,v2_vcls))
-    end
-  end
-
-  desc "diff_local", "Diff VCL on Fastly with local VCL. Options: --version"
-  option :version
-  def diff_local
-    id = VCL::Utils.parse_directory
-
-    abort "could not parse service id from directory" unless id
-
-    version = VCL::Fetcher.get_active_version(id) unless options[:version]
-    version ||= options[:version]
-
-    v1_vcls = VCL::Fetcher.get_vcl(id, version)
-    v1_vcls ||= []
-
-    v2_vcls = []
-
-    Dir.foreach(Dir.pwd) do |p|
-      next unless File.file?(p)
-      next unless p =~ /\.vcl$/
-
-      v2_vcls << {
-        "name" => p.chomp(".vcl"),
-        "content" => File.read(p)
-      }
-    end
-
-    say(VCL::Utils.diff_versions(v1_vcls,v2_vcls))
   end
 
   desc "upload", "Uploads VCL in the current directory to the service. Options: --version"

@@ -39,6 +39,8 @@ module VCL
 
     def self.diff_versions(v1,v2)
       diff = ""
+      v1 ||= Array.new
+      v2 ||= Array.new
 
       v1.each do |vcl1|
         v2_content = false
