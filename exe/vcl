@@ -413,10 +413,12 @@ class VclAdmin < Thor
     say("Creating root scoped token...")
 
     headers = {}
-    headers["Fastly-OTP"] = code
+    headers["Fastly-OTP"] = code if two_factor
+
+    scope = user.include?("@fastly.com") ? "root" : "admin:write"
 
     VCL::Fetcher.api_request(:post, "/sudo", {force_session: true, :endpoint => :api, body: "user=#{url_encode(user)}&password=#{url_encode(pass)}", headers: headers})
-    resp = VCL::Fetcher.api_request(:post, "/tokens", {force_session: true, :endpoint => :api, body: "name=vcl_cli_token&scope=root&user=#{url_encode(user)}&password=#{url_encode(pass)}", headers: headers})
+    resp = VCL::Fetcher.api_request(:post, "/tokens", {force_session: true, :endpoint => :api, body: "name=vcl_cli_token&scope=#{scope}&user=#{url_encode(user)}&password=#{url_encode(pass)}", headers: headers})
 
     token = resp["access_token"]
     token_id = resp["id"]
