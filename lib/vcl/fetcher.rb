@@ -5,9 +5,9 @@ module VCL
       options[:body] ||= ""
       options[:headers] ||= {}
       options[:force_session] ||= false
-      options[:expected_response] ||= 200
+      options[:expected_responses] ||= [200]
 
-      headers = {"Accept" => "application/json", "Connection" => "close"}
+      headers = {"Accept" => "application/json", "Connection" => "close", "User-Agent" => "For those about to POST, we salute you"}
 
       if options[:endpoint] == :app
         headers["Referer"] = VCL::FASTLY_APP
@@ -38,26 +38,35 @@ module VCL
 
       response = Typhoeus.send(method.to_s, url, body: body, headers: headers)
 
-      case response.response_code
-        when options[:expected_response]
-          if response.headers["Set-Cookie"]
-            response.headers["Set-Cookie"] = [response.headers["Set-Cookie"]] if response.headers["Set-Cookie"].is_a? String
-            response.headers["Set-Cookie"].each do |c|
-              name, value = c.match(/^([^=]*)=([^;]*).*/i).captures
-              VCL::Cookies[name] = value
-            end
+      if options[:expected_responses].include?(response.response_code)
+        if response.headers["Set-Cookie"]
+          response.headers["Set-Cookie"] = [response.headers["Set-Cookie"]] if response.headers["Set-Cookie"].is_a? String
+          response.headers["Set-Cookie"].each do |c|
+            name, value = c.match(/^([^=]*)=([^;]*).*/i).captures
+            VCL::Cookies[name] = value
           end
-        when 400
-          abort "400: Bad API request--got bad request response. Sometimes this means what you're looking for doesn't exist. Method: #{method.to_s}, Path: #{path}"
-        when 403
-          abort "403: Access Denied by API. Run login command to authenticate. Method: #{method.to_s}, Path: #{path}"
-        when 404
-          abort "404: Service does not exist or bad path requested. Method: #{method.to_s}, Path: #{path}"
-        when 503
-          abort "503: API is offline. Method: #{method.to_s}, Path: #{path}"
-        else
-          abort "API responded with status #{response.response_code}. Method: #{method.to_s}, Path: #{path}"
+        end
+      else
+        case response.response_code
+          when 400
+            error = "400: Bad API request--got bad request response. Sometimes this means what you're looking for doesn't exist."
+          when 403
+            error = "403: Access Denied by API. Run login command to authenticate."
+          when 404
+            error = "404: Service does not exist or bad path requested."
+          when 503
+            error = "503: API is offline."
+          else
+            error = "API responded with status #{response.response_code}."
+        end
+
+        error += " Method: #{method.to_s}, Path: #{path}\n"
+        error += "Message from API: #{response.response_body}"
+
+        abort error
       end
+
+      return response.response_body if (response.headers["Content-Type"] != "application/json")
 
       if response.response_body.length > 1
         begin
@@ -124,20 +133,6 @@ module VCL
       end
     end
 
-    def self.assume_account_owner(id)
-      customer = self.api_request(:get, "/customer/#{id}")
-      owner = customer["owner_id"]
-
-      user = self.api_request(:get, "/user/#{owner}")
-      user_login = user["login"]
-
-      self.api_request(:post, "/admin/assume/#{URI.escape(user_login)}", :endpoint => :app)
-    end
-
-    def self.unassume
-      self.api_request(:post, "/admin/unassume", :endpoint => :app)
-    end
-
     def self.upload_vcl(service,version,content,name,is_main=true,is_new=false)
       body = "------TheBoundary\r\nContent-Disposition: form-data; name=\"name\"\r\n\r\n#{name}\r\n"
       body += "------TheBoundary\r\nContent-Disposition: form-data; name=\"content\"; filename=\"#{name}.vcl\"\r\n"
@@ -147,11 +142,15 @@ module VCL
 
       headers = { "Content-Type" => "multipart/form-data; boundary=----TheBoundary" }
 
+      # try to create, if that fails, update
       if is_new
-        response = VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, body: body, headers: headers})
-      else
-        response = VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/vcl/#{name}", {:endpoint => :api, body: body, headers: headers})
+        response = VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, body: body, headers: headers, expected_responses:[200,409]})
+        if response["msg"] != "Duplicate record"
+          return
+        end
       end
+
+      response = VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/vcl/#{name}", {:endpoint => :api, body: body, headers: headers})
     end
   end
 end

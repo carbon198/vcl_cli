@@ -1,5 +1,9 @@
 module VCL
   module Utils
+    def self.open_service(id)
+      Launchy.open(VCL::FASTLY_APP + VCL::TANGO_PATH + id)
+    end
+
     def self.parse_directory(path=false)
       directory = Dir.pwd unless path
       directory = path if path
@@ -39,6 +43,8 @@ module VCL
 
     def self.diff_versions(v1,v2)
       diff = ""
+      v1 ||= Array.new
+      v2 ||= Array.new
 
       v1.each do |vcl1|
         v2_content = false

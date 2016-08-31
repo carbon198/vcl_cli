@@ -9,12 +9,13 @@ require "erb"
 require "vcl/version"
 require "vcl/fetcher"
 require "vcl/utils"
+require "vcl/cli"
 
 include ERB::Util
 
 module VCL
-  COOKIE_JAR = ENV['HOME'] + "/vcl_cookie_jar"
-  TOKEN_FILE = ENV['HOME'] + "/vcl_token"
+  COOKIE_JAR = ENV['HOME'] + "/.vcl_cookie_jar"
+  TOKEN_FILE = ENV['HOME'] + "/.vcl_token"
   FASTLY_API = "https://api.fastly.com"
   FASTLY_APP = "https://manage.fastly.com"
   TANGO_PATH = "/configure/services/"
