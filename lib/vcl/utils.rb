@@ -1,5 +1,9 @@
 module VCL
   module Utils
+    def self.open_service(id)
+      Launchy.open(VCL::FASTLY_APP + VCL::TANGO_PATH + id)
+    end
+
     def self.parse_directory(path=false)
       directory = Dir.pwd unless path
       directory = path if path

@@ -18,7 +18,7 @@ module VCL
         abort "Could not parse service id from directory and no domain/service supplied" unless id
       end
 
-      Launchy.open(VCL::FASTLY_APP + VCL::TANGO_PATH + id)
+      VCL::Utils.open_service(id)
     end
   end
 end
