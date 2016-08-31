@@ -1,6 +1,6 @@
 module VCL
   class CLI < Thor
-    desc "dictionary ACTION DICTIONARY_NAME=none KEY=none VALUE=none", "Manipulate edge dictionaries. Actions: create, delete, list, add, update, remove, list_items, bulk_add. Options: --service --version"
+    desc "dictionary ACTION DICTIONARY_NAME=none KEY=none VALUE=none", "Manipulate edge dictionaries. Actions: create, delete, list, upsert, remove, list_items, bulk_add. Options: --service --version"
     option :service
     option :version
     def dictionary(action, name=false, key=false, value=false)
@@ -56,14 +56,12 @@ module VCL
         end
       when "bulk_add"
         abort "Must specify name for dictionary" unless name
+        abort "Must specify JSON blob of operations in key field. Documentation on this can be found here: https://docs.fastly.com/api/config#dictionary_item_dc826ce1255a7c42bc48eb204eed8f7f"
         dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}")
 
-        items = JSON.parse(key)
-        items.each do |k,v|
-          VCL::Fetcher.api_request(:post, "/service/#{id}/dictionary/#{dict["id"]}/item", body: "item_key=#{k}&item_value=#{v}")
+        VCL::Fetcher.api_request(:patch, "/service/#{id}/dictionary/#{dict["id"]}/items", body: key)
 
-          say("#{k} added to #{name} with value #{v}")
-        end
+        say("Bulk add operation completed successfully.")
       end
     end
   end
