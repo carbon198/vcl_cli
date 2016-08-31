@@ -9,6 +9,7 @@ require "erb"
 require "vcl/version"
 require "vcl/fetcher"
 require "vcl/utils"
+require "vcl/cli"
 
 include ERB::Util
 
