@@ -56,12 +56,13 @@ module VCL
         end
       when "bulk_add"
         abort "Must specify name for dictionary" unless name
-        abort "Must specify JSON blob of operations in key field. Documentation on this can be found here: https://docs.fastly.com/api/config#dictionary_item_dc826ce1255a7c42bc48eb204eed8f7f"
+        abort "Must specify JSON blob of operations in key field. Documentation on this can be found here: https://docs.fastly.com/api/config#dictionary_item_dc826ce1255a7c42bc48eb204eed8f7f" unless key
         dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}")
-
-        VCL::Fetcher.api_request(:patch, "/service/#{id}/dictionary/#{dict["id"]}/items", body: key)
+        VCL::Fetcher.api_request(:patch, "/service/#{id}/dictionary/#{dict["id"]}/items", {body: key, headers: {"Content-Type" => "application/json"}})
 
         say("Bulk add operation completed successfully.")
+      else
+        abort "#{action} is not a valid command"
       end
     end
   end
