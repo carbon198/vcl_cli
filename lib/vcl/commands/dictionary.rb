@@ -31,14 +31,7 @@ module VCL
         resp.each do |d|
           puts "#{d["id"]} - #{d["name"]}"
         end
-      when "add"
-        abort "Must specify name for dictionary" unless name
-        abort "Must specify key and value for dictionary item" unless (key && value)
-        dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}")
-        VCL::Fetcher.api_request(:post, "/service/#{id}/dictionary/#{dict["id"]}/item", body: "item_key=#{key}&item_value=#{value}")
-
-        say("Dictionary item #{key} created with value #{value}.")
-      when "update"
+      when "upsert"
         abort "Must specify name for dictionary" unless name
         abort "Must specify key and value for dictionary item" unless (key && value)
         dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}")
