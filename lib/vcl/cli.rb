@@ -14,6 +14,16 @@ require "vcl/commands/login"
 
 module VCL
   class CLI < Thor
+    def initialize(a,b,c)
+      unless File.exist?(VCL::TOKEN_FILE)
+        if yes?("Unable to locate API token. Would you like to login first?")
+          self.login
+        end
+      end
+
+      super
+    end
+
     desc "version", "Displays version of the VCL gem."
     def version
       say("VCL gem version is #{VCL::VERSION}")
