@@ -1,6 +1,6 @@
 module VCL
   class CLI < Thor
-    desc "activate", "Activates a service version. Options: --service, --version"
+    desc "activate", "Activates the latest writable service version, or the version number provided in the --version flag."
     option :service
     option :version
     def activate

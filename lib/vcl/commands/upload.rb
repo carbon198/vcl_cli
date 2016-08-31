@@ -1,6 +1,6 @@
 module VCL
   class CLI < Thor
-    desc "upload", "Uploads VCL in the current directory to the service. Options: --version"
+    desc "upload", "Uploads VCL in the current directory to the service."
     option :version
     def upload
       id = VCL::Utils.parse_directory

@@ -1,6 +1,6 @@
 module VCL
   class CLI < Thor
-    desc "diff", "Diff two service versions. By default, diffs the active version of the service assumed from the current directory with the local VCL in the current directory. Options allow you to specify different versions and different services. Options: --service1, --service2, --version1, --version2, --generated"
+    desc "diff", "Diff two service versions. By default, diffs the active version of the service assumed from the current directory with the local VCL in the current directory. Options allow you to specify different versions and different services."
     option :version1
     option :version2
     option :service1

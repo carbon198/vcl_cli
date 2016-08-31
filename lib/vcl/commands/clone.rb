@@ -1,6 +1,6 @@
 module VCL
   class CLI < Thor
-    desc "clone SERVICE_ID TARGET_SERVICE_ID", "Clone a service version to another service."
+    desc "clone SERVICE_ID TARGET_SERVICE_ID", "[ADMIN] Clone a service version to another service."
     option :version
     def clone(id,target_id)
       version = VCL::Fetcher.get_active_version(id) unless options[:version]

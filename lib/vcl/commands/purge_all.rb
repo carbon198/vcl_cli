@@ -1,6 +1,6 @@
 module VCL
   class CLI < Thor
-    desc "purge_all", "Purge all content from a service. Options: --service"
+    desc "purge_all", "Purge all content from a service."
     option :service
     def purge_all
       parsed_id = VCL::Utils.parse_directory

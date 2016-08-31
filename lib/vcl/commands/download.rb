@@ -1,6 +1,6 @@
 module VCL
   class CLI < Thor
-    desc "download VCL_NAME=all", "Download VCLs. Options: --service, --version"
+    desc "download VCL_NAME=all", "Download VCLs. If no name is specified, downloads all the VCLs on the service."
     option :service
     option :version
     def download(vcl_name=false)

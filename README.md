@@ -1,6 +1,6 @@
 # VCL
 
-CLI for manipulating VCLs. Intended to create a workflow around VCL editing. The end goal will be to support development -> staging -> production deployment and Github integration. 
+CLI for manipulating VCLs. Intended to create a workflow around VCL editing.
 
 Specifically for admins, there are several commands like clone and move that are much easier to use that interacting with the API directly.
 
@@ -25,29 +25,46 @@ The same command also works to update to a new version.
 The following commands are available:
 
 ```
-$ vcl
-Commands:
-  vcl activate                                                    # Activates a service version. Options: --service, --version
-  vcl clone SERVICE_ID TARGET_SERVICE_ID                          # Clone a service version to another service.
-  vcl create_service CUSTOMER_ID SERVICE_NAME DOMAIN ORIGIN       # Create a blank service for a customer.
-  vcl dictionary ACTION DICTIONARY_NAME=none KEY=none VALUE=none  # Manipulate edge dictionaries. Actions: create, delete, list, add, update, remove, list_items, bulk_add. Options: --service --version
-  vcl diff SERVICE_ID VERSION1 VERSION2                           # Diff two versions on the same service. Options: --generated
-  vcl diff_local                                                  # Diff VCL on Fastly with local VCL. Options: --version
-  vcl diff_services SERVICE_ID1 VERSION1 SERVICE_ID2 VERSION2     # Diff versions on two different services. Options: --generated
-  vcl download VCL_NAME=all                                       # Download VCLs. Options: --service, --version
-  vcl help [COMMAND]                                              # Describe available commands or one specific command
-  vcl login                                                       # Logs into the app. Required before doing anything else.
-  vcl move SERVICE_ID TARGET_CUSTOMER                             # Move a service to a new customer
-  vcl open DOMAIN                                                 # Find the service ID for a domain and open the Fastly app.
-  vcl purge_all                                                   # Purge all content from a service. Options: --service
-  vcl services CUSTOMER_ID                                        # Lists services for a customer.
-  vcl upload                                                      # Uploads VCL in the current directory to the service. Options: --version
-  vcl version                                                     # Displays version of the VCL gem.
-  vcl waf                                                         # Download WAF VCLs
-
+  vcl activate                                                    
+  vcl clone SERVICE_ID TARGET_SERVICE_ID                          
+  vcl create_service SERVICE_NAME                                 
+  vcl dictionary ACTION DICTIONARY_NAME=none KEY=none VALUE=none  
+  vcl diff                                                        
+  vcl download VCL_NAME=all                                       
+  vcl help [COMMAND]                                              
+  vcl login                                                       
+  vcl move SERVICE_ID TARGET_CUSTOMER                             
+  vcl open DOMAIN                                                 
+  vcl purge_all                                                   
+  vcl skeleton NAME                                               
+  vcl upload                                                      
+  vcl version                                                     
+  vcl waf                                                         
 ```
 
-`vcl download` pulls down all vcls for a service and puts them in a directory for the service. Once you navigate into the directory, the context of that service is assumed by several commands. 
+## Workflow
+
+Basic setup for a service:
+
+```
+$ vcl download --service 72rdJo8ipqaHRFYnn12G2q
+No VCLs on this service, however a folder has been created. Create VCLs in this folder and upload.
+$ cd Sandbox\ -\ 72rdJo8ipqaHRFYnn12G2q/
+$ vcl skeleton
+Boilerplate written to main.vcl.
+$ vcl upload
+VCL main does not currently exist on the service, would you like to create it? y
+[You will see a diff here for the new VCL]
+Given the above diff, are you sure you want to upload your changes? y
+main uploaded to 72rdJo8ipqaHRFYnn12G2q
+VCL(s) have been uploaded to version 286 and validated.
+$ vcl activate
+Version 286 on 72rdJo8ipqaHRFYnn12G2q activated.
+```
+
+Once you are past this point you can edit your VCLs and use the commmand `vcl upload && vcl activate`. The service ID will be automatically inferred from the folder you are currently in. In fact, all commands will attempt to assume the service ID of the current directory if it is relevant.
+
+You may find it useful to keep a Github repo with one folder created by this command for each directory. This way you can version your VCL files.
 
 ## Contributing
 

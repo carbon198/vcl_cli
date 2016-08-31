@@ -1,6 +1,12 @@
 module VCL
   class CLI < Thor
-    desc "dictionary ACTION DICTIONARY_NAME=none KEY=none VALUE=none", "Manipulate edge dictionaries. Actions: create, delete, list, upsert, remove, list_items, bulk_add. Options: --service --version"
+    desc "dictionary ACTION DICTIONARY_NAME=none KEY=none VALUE=none", "Manipulate edge dictionaries. Actions: create: Create a dictionary\n
+    delete: Delete a dictionary\n
+    list: Provide a list of dictionaries on this service\n
+    upsert: Update a key in a dictionary if it exists. Add the key if it does not.\n
+    remove: Remove a key from a dictionary\n
+    list_items: List all keys in the dictionary\n
+    bulk_add: Perform operations on the dictionary in bulk. A list of operations in JSON format should be specified in the key field. Documentation on this format can be found here: https://docs.fastly.com/api/config#dictionary_item_dc826ce1255a7c42bc48eb204eed8f7f"
     option :service
     option :version
     def dictionary(action, name=false, key=false, value=false)
