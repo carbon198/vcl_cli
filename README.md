@@ -66,6 +66,8 @@ Once you are past this point you can edit your VCLs and use the commmand `vcl up
 
 You may find it useful to keep a Github repo with one folder created by this command for each directory. This way you can version your VCL files.
 
+Use the `vcl help [command]` command if you want more information on an individual command.
+
 ## Contributing
 
 Submit a pull request. Don't break anything.
