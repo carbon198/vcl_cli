@@ -31,6 +31,7 @@ module VCL
         vcls[v["name"]]["matched"] = true
         vcls[v["name"]]["new"] = false
         main_found = vcls[v["name"]]["main"] = v["main"] == true ? true : false
+        vcls[v["name"]]["diff_length"] = diff.length
 
         next if diff.length < 2
 
@@ -39,7 +40,12 @@ module VCL
 
       vcls.delete_if do |k,v|
         if (v["matched"] == true)
-          false
+          #dont upload if the file isn't different from the old file
+          if (v["diff_length"] > 1)
+            false
+          else
+            true
+          end
         elsif yes?("VCL #{v["name"]} does not currently exist on the service, would you like to create it?")
           v["new"] = true
           if !main_found
