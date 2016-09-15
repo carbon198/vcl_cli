@@ -2,8 +2,9 @@ module VCL
   class CLI < Thor
     desc "waf", "Download WAF VCLs"
     option :service
+    option :version
     def waf
-      if !options[:service1]
+      if !options[:service]
         id = VCL::Utils.parse_directory
         abort "Could not parse service id from directory" unless id
       else
