@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vcl (1.0.0)
+    vcl (1.0.1)
       bundler (~> 1.10)
       diffy (~> 3.0, >= 3.0.7)
       launchy (~> 2.4.3, >= 2.4.3)

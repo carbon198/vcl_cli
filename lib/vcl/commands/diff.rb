@@ -15,7 +15,9 @@ module VCL
       end
       if !options[:service2]
         service2 = VCL::Utils.parse_directory
-        abort "Could not parse service id from directory" unless service2
+
+        # use service1 for both if unspecified
+        service2 = service1 unless service2
       else
         service2 = options[:service2]
       end
