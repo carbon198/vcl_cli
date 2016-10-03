@@ -39,6 +39,10 @@ module VCL
       end
 
       vcls.delete_if do |k,v|
+        if v["name"] == "generated"
+          next unless yes?("The name of this file is 'generated.vcl'. Please do not upload generated VCL back to a service. Are you sure you want to upload this file?")
+        end
+
         if (v["matched"] == true)
           #dont upload if the file isn't different from the old file
           if (v["diff_length"] > 1)

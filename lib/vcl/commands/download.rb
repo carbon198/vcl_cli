@@ -3,6 +3,7 @@ module VCL
     desc "download VCL_NAME=all", "Download VCLs. If no name is specified, downloads all the VCLs on the service."
     option :service
     option :version
+    option :generated
     def download(vcl_name=false)
       parsed_id = VCL::Utils.parse_directory
 
@@ -22,6 +23,12 @@ module VCL
 
       version = VCL::Fetcher.get_active_version(id) unless options[:version]
       version ||= options[:version]
+
+      if options[:generated]
+        generated = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/generated_vcl")
+        File.open("generated.vcl", 'w+') {|f| f.write(generated["content"]) }
+        abort "Generated VCL for version #{version} written to generated.vcl."
+      end
 
       vcl = VCL::Fetcher.get_vcl(id, version)
 
