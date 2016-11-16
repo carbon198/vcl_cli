@@ -21,7 +21,7 @@ module VCL
       case action
       when "create"
         abort "Must specify name for dictionary" unless name
-        VCL::Fetcher.api_request(:post, "/service/#{id}/version/#{version}/dictionary", body: "name=#{URI.escape(name)}")
+        VCL::Fetcher.api_request(:post, "/service/#{id}/version/#{version}/dictionary", params: { name: name })
 
         say("Dictionary #{name} created.")
       when "delete"
@@ -41,7 +41,7 @@ module VCL
         abort "Must specify name for dictionary" unless name
         abort "Must specify key and value for dictionary item" unless (key && value)
         dict = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{version}/dictionary/#{name}")
-        VCL::Fetcher.api_request(:put, "/service/#{id}/dictionary/#{dict["id"]}/item/#{key}", body: "item_value=#{value}")   
+        VCL::Fetcher.api_request(:put, "/service/#{id}/dictionary/#{dict["id"]}/item/#{key}", params: { item_value: value })   
 
         say("Dictionary item #{key} set to #{value}.")   
       when "remove"

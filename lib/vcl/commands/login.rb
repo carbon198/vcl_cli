@@ -8,7 +8,7 @@ module VCL
 
       user = self.ask("Username: ")
       pass = self.ask("Password: ", :echo => false)
-      resp = VCL::Fetcher.api_request(:post, "/login", { :endpoint => :app, body: "user=#{url_encode(user)}&password=#{url_encode(pass)}"})
+      resp = VCL::Fetcher.api_request(:post, "/login", { :endpoint => :app, params: { user: user, password: pass}})
 
       if resp["needs_two_factor_auth"]
         two_factor = true
@@ -16,7 +16,7 @@ module VCL
         say("\nTwo factor auth enabled on account, second factor needed.")
         code = ask('Please enter verification code:', echo: false)
 
-        resp = VCL::Fetcher.api_request(:post, "/two_factor_auth/verify", {force_session: true, :endpoint => :app, body: "token=#{code}"} )
+        resp = VCL::Fetcher.api_request(:post, "/two_factor_auth/verify", {force_session: true, :endpoint => :app, params: { token: code }} )
       else
         say("\nTwo factor auth is NOT enabled. You should go do that immediately.")
       end
@@ -32,8 +32,8 @@ module VCL
 
       scope = user.include?("@fastly.com") ? "root" : "admin:write"
 
-      VCL::Fetcher.api_request(:post, "/sudo", {force_session: true, :endpoint => :api, body: "user=#{url_encode(user)}&password=#{url_encode(pass)}", headers: headers})
-      resp = VCL::Fetcher.api_request(:post, "/tokens", {force_session: true, :endpoint => :api, body: "name=vcl_cli_token&scope=#{scope}&user=#{url_encode(user)}&password=#{url_encode(pass)}", headers: headers})
+      VCL::Fetcher.api_request(:post, "/sudo", {force_session: true, :endpoint => :api, params: { user: user, password: pass}, headers: headers})
+      resp = VCL::Fetcher.api_request(:post, "/tokens", {force_session: true, :endpoint => :api, params: { name: "vcl_cli_token", scope: scope, user: user, password: pass }, headers: headers})
 
       token = resp["access_token"]
       token_id = resp["id"]

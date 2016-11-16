@@ -2,8 +2,9 @@ module VCL
   module Fetcher
     def self.api_request(method, path, options={})
       options[:endpoint] ||= :api
-      options[:body] ||= ""
+      options[:params] ||= {}
       options[:headers] ||= {}
+      options[:body] ||= nil
       options[:force_session] ||= false
       options[:expected_responses] ||= [200]
 
@@ -30,13 +31,13 @@ module VCL
 
       url = "#{options[:endpoint] == :api ? VCL::FASTLY_API : VCL::FASTLY_APP}#{path}"
 
-      body = options[:body]
-
-      if body.length > 0 && (body.is_a? String)
-        headers["Content-Length"] = body.length
-      end
-
-      response = Typhoeus.send(method.to_s, url, body: body, headers: headers)
+      response = Typhoeus::Request.new(
+        url,
+        method: method,
+        params: options[:params],
+        headers: headers,
+        body: options[:body]
+      ).run
 
       if options[:expected_responses].include?(response.response_code)
         if response.headers["Set-Cookie"]
@@ -49,7 +50,8 @@ module VCL
       else
         case response.response_code
           when 400
-            error = "400: Bad API request--got bad request response. Sometimes this means what you're looking for doesn't exist."
+            p response
+            error = "400: Bad API request--got bad request response."
           when 403
             error = "403: Access Denied by API. Run login command to authenticate."
           when 404
@@ -60,7 +62,7 @@ module VCL
             error = "API responded with status #{response.response_code}."
         end
 
-        error += " Method: #{method.to_s}, Path: #{path}\n"
+        error += " Method: #{method.to_s.upcase}, Path: #{path}\n"
         error += "Message from API: #{response.response_body}"
 
         abort error
@@ -134,23 +136,22 @@ module VCL
     end
 
     def self.upload_vcl(service,version,content,name,is_main=true,is_new=false)
-      body = "------TheBoundary\r\nContent-Disposition: form-data; name=\"name\"\r\n\r\n#{name}\r\n"
-      body += "------TheBoundary\r\nContent-Disposition: form-data; name=\"content\"; filename=\"#{name}.vcl\"\r\n"
-      body += "Content-Type: application/octet-stream\r\n\r\n#{content}\r\n"
-      body += "------TheBoundary\r\nContent-Disposition: form-data; name=\"main\"\r\n\r\n"
-      body += "#{is_main ? "1" : "0"}\r\n------TheBoundary--\r\n"
-
-      headers = { "Content-Type" => "multipart/form-data; boundary=----TheBoundary" }
+      params = { name: name, main: "#{is_main ? "1" : "0"}", content: content }
 
       # try to create, if that fails, update
       if is_new
-        response = VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, body: body, headers: headers, expected_responses:[200,409]})
+        response = VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, params: params, expected_responses:[200,409]})
         if response["msg"] != "Duplicate record"
           return
         end
       end
 
-      response = VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/vcl/#{name}", {:endpoint => :api, body: body, headers: headers})
+      response = VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/vcl/#{name}", {:endpoint => :api, params: params, expected_responses: [200,404]})
+
+      # The VCL got deleted so recreate it.
+      if response["msg"] == "Record not found"
+        VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, params: params})
+      end
     end
   end
 end
