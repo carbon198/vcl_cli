@@ -59,6 +59,7 @@ module VCL
           when 503
             error = "503: API is offline."
           else
+            p response
             error = "API responded with status #{response.response_code}."
         end
 
@@ -140,17 +141,17 @@ module VCL
 
       # try to create, if that fails, update
       if is_new
-        response = VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, params: params, expected_responses:[200,409]})
+        response = VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, body: params, expected_responses:[200,409]})
         if response["msg"] != "Duplicate record"
           return
         end
       end
 
-      response = VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/vcl/#{name}", {:endpoint => :api, params: params, expected_responses: [200,404]})
+      response = VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/vcl/#{name}", {:endpoint => :api, body: params, expected_responses: [200,404]})
 
       # The VCL got deleted so recreate it.
       if response["msg"] == "Record not found"
-        VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, params: params})
+        VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, body: params})
       end
     end
   end
