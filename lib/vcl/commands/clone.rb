@@ -19,7 +19,7 @@ module VCL
       say("Restoring domains that were lost during cloning.")
       domains.each do |d|
         VCL::Fetcher.api_request(:post,"/service/#{target_id}/version/#{result["number"]}/domain", {
-            params: { name: name, comment: comment }
+            params: { name: d["name"], comment: d["comment"] }
           })
       end
     end
