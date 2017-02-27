@@ -11,6 +11,7 @@ require "vcl/commands/move"
 require "vcl/commands/create_service"
 require "vcl/commands/dictionary"
 require "vcl/commands/login"
+require "vcl/commands/watch"
 
 module VCL
   class CLI < Thor
