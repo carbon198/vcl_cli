@@ -154,5 +154,61 @@ module VCL
         VCL::Fetcher.api_request(:post, "/service/#{service}/version/#{version}/vcl", {:endpoint => :api, body: params})
       end
     end
+
+    def self.login
+      thor = Thor::Shell::Basic.new
+
+      user = thor.ask("Username: ")
+      pass = thor.ask("Password: ", :echo => false)
+
+      resp = VCL::Fetcher.api_request(:post, "/login", { :endpoint => :app, params: { user: user, password: pass}})
+
+      if resp["needs_two_factor_auth"]
+        two_factor = true
+
+        thor.say("\nTwo factor auth enabled on account, second factor needed.")
+        code = thor.ask('Please enter verification code:', echo: false)
+
+        resp = VCL::Fetcher.api_request(:post, "/two_factor_auth/verify", {force_session: true, :endpoint => :app, params: { token: code }} )
+      else
+        thor.say("\nTwo factor auth is NOT enabled. You should go do that immediately.")
+      end
+
+      thor.say("Login successful!")
+
+      return { user: user, pass: pass, two_factor: two_factor, code: code }
+    end
+
+    def self.create_token(user,pass,code,scope,name)
+      thor = Thor::Shell::Basic.new
+
+      headers = {}
+      headers["Fastly-OTP"] = code if code
+
+      VCL::Fetcher.api_request(:post, "/sudo", {
+        force_session: true,
+        endpoint: :api,
+        params: {
+          user: user,
+          password: pass
+        },
+        headers: headers
+      })
+      resp = VCL::Fetcher.api_request(:post, "/tokens", {
+        force_session: true,
+        endpoint: :api,
+        params: {
+          name: name,
+          scope: scope,
+          user: user,
+          password: pass
+        },
+        headers: headers
+      })
+
+      thor.say("\n#{resp["id"]} created.")
+
+      return resp
+    end
   end
 end

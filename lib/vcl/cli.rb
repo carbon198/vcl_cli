@@ -1,3 +1,5 @@
+require "pp"
+
 require "vcl/commands/purge_all"
 require "vcl/commands/open"
 require "vcl/commands/download"
@@ -12,6 +14,7 @@ require "vcl/commands/create_service"
 require "vcl/commands/dictionary"
 require "vcl/commands/login"
 require "vcl/commands/watch"
+require "vcl/commands/token"
 
 module VCL
   class CLI < Thor
