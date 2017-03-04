@@ -13,7 +13,7 @@ module VCL
 
       say("Creating root scoped token...")
 
-      scope = login_results[:user].include?("@fastly.com") ? "root" : "admin:write"
+      scope = login_results[:user].include?("@fastly.com") ? "root" : "global"
 
       resp = VCL::Fetcher.create_token(login_results[:user],login_results[:pass],login_results[:code],scope,"vcl_cli_token")
 
