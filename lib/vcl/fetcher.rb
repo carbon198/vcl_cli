@@ -50,7 +50,6 @@ module VCL
       else
         case response.response_code
           when 400
-            p response
             error = "400: Bad API request--got bad request response."
           when 403
             error = "403: Access Denied by API. Run login command to authenticate."
@@ -59,7 +58,6 @@ module VCL
           when 503
             error = "503: API is offline."
           else
-            p response
             error = "API responded with status #{response.response_code}."
         end
 

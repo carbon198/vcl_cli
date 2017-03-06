@@ -6,6 +6,8 @@ module VCL
       service = options[:service]
       service ||= VCL::Utils.parse_directory
 
+      abort "could not parse service id from directory" unless service
+
       ts = false
       while true
         data = VCL::Fetcher.api_request(:get,"/rt/v1/channel/#{service}/ts/#{ts ? ts : 'h/limit/120'}", :endpoint => :app)
