@@ -25,21 +25,24 @@ The same command also works to update to a new version.
 The following commands are available:
 
 ```
-  vcl activate                                                    
-  vcl clone SERVICE_ID TARGET_SERVICE_ID                          
-  vcl create_service SERVICE_NAME                                 
-  vcl dictionary ACTION DICTIONARY_NAME=none KEY=none VALUE=none  
-  vcl diff                                                        
-  vcl download VCL_NAME=all                                       
-  vcl help [COMMAND]                                              
-  vcl login                                                       
-  vcl move SERVICE_ID TARGET_CUSTOMER                             
-  vcl open DOMAIN                                                 
-  vcl purge_all                                                   
-  vcl skeleton NAME                                               
-  vcl upload                                                      
-  vcl version                                                     
-  vcl waf                                                         
+  vcl activate
+  vcl clone SERVICE_ID TARGET_SERVICE_ID
+  vcl create_service SERVICE_NAME
+  vcl dictionary ACTION DICTIONARY_NAME=none KEY=none VALUE=none
+  vcl diff
+  vcl domain ACTION HOST
+  vcl download VCL_NAME=all
+  vcl help [COMMAND]
+  vcl login
+  vcl move SERVICE_ID TARGET_CUSTOMER
+  vcl open DOMAIN
+  vcl purge_all
+  vcl skeleton NAME
+  vcl token ACTION
+  vcl upload
+  vcl version
+  vcl waf
+  vcl watch
 ```
 
 ## Workflow
