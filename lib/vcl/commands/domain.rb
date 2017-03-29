@@ -1,8 +1,8 @@
 module VCL
   class CLI < Thor
     desc "domain ACTION HOST", "Create and delete domains on a service."
-    option :service
-    option :version
+    method_option :service, :aliases => ["--s"]
+    method_option :version, :aliases => ["--v"]
     def domain(action,host)
       id = VCL::Utils.parse_directory unless options[:service]
       id ||= options[:service]

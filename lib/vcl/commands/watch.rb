@@ -1,7 +1,7 @@
 module VCL
   class CLI < Thor
     desc "watch", "Watch live stats on a service"
-    option :service
+    method_option :service, :aliases => ["--s"]
     def watch
       service = options[:service]
       service ||= VCL::Utils.parse_directory

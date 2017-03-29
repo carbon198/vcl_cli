@@ -1,9 +1,9 @@
 module VCL
   class CLI < Thor
     desc "download VCL_NAME=all", "Download VCLs. If no name is specified, downloads all the VCLs on the service."
-    option :service
-    option :version
-    option :generated
+    method_option :service, :aliases => ["--s"]
+    method_option :version, :aliases => ["--v"]
+    method_option :generated, :aliases => ["--g"]
     def download(vcl_name=false)
       parsed_id = VCL::Utils.parse_directory
 
