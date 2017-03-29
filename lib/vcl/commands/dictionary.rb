@@ -7,8 +7,8 @@ module VCL
     remove: Remove a key from a dictionary\n
     list_items: List all keys in the dictionary\n
     bulk_add: Perform operations on the dictionary in bulk. A list of operations in JSON format should be specified in the key field. Documentation on this format can be found here: https://docs.fastly.com/api/config#dictionary_item_dc826ce1255a7c42bc48eb204eed8f7f"
-    option :service
-    option :version
+    method_option :service, :aliases => ["--s"]
+    method_option :version, :aliases => ["--v"]
     def dictionary(action, name=false, key=false, value=false)
       id = VCL::Utils.parse_directory unless options[:service]
       id ||= options[:service]

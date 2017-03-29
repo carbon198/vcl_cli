@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency "bundler", "~> 1.10"
   spec.add_runtime_dependency "typhoeus", "~> 1.1.0"
-  spec.add_runtime_dependency "thor", "~> 0.19.1"
+  spec.add_runtime_dependency "thor", "~> 0.19.4"
   spec.add_runtime_dependency 'diffy', '~> 3.0', '>= 3.0.7'
   spec.add_runtime_dependency 'launchy', '~> 2.4.3', '>= 2.4.3'
 end

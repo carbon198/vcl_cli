@@ -1,7 +1,7 @@
 module VCL
   class CLI < Thor
     desc "open DOMAIN", "Find the service ID for a domain and open the Fastly app. You may also specify the service ID or assume the context of the directory you are in by omitting the domain."
-    option :service
+    method_option :service, :aliases => ["--s"]
     def open(domain=false)
       if (options[:service] && domain)
         say("Both domain and service id supplied, using service id.")

@@ -1,8 +1,8 @@
 module VCL
   class CLI < Thor
     desc "token ACTION", "Manipulate API tokens. Available actions are list, create, and delete. Scope defaults to admin:write."
-    option :customer
-    option :scope
+    method_option :customer, :aliases => ["--c"]
+    option :scope # let's not alias this to `s` since that is for service the rest of the time
     def token(action)
       case action
       when "list"

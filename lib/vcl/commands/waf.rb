@@ -1,8 +1,8 @@
 module VCL
   class CLI < Thor
     desc "waf", "Download WAF VCLs"
-    option :service
-    option :version
+    method_option :service, :aliases => ["--s"]
+    method_option :version, :aliases => ["--v"]
     def waf
       if !options[:service]
         id = VCL::Utils.parse_directory

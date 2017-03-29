@@ -1,8 +1,8 @@
 module VCL
   class CLI < Thor
     desc "activate", "Activates the latest writable service version, or the version number provided in the --version flag."
-    option :service
-    option :version
+    method_option :service, :aliases => ["--s"]
+    method_option :version, :aliases => ["--v"]
     def activate
       id = VCL::Utils.parse_directory unless options[:service]
       id ||= options[:service]

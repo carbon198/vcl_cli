@@ -1,7 +1,7 @@
 module VCL
   class CLI < Thor
     desc "skeleton NAME", "Create a skeleton VCL file with the current boilerplate."
-    option :service
+    method_option :service, :aliases => ["--s"]
     def skeleton(name="main")
       id = VCL::Utils.parse_directory unless options[:service]
       id ||= options[:service]

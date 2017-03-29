@@ -1,11 +1,11 @@
 module VCL
   class CLI < Thor
     desc "diff", "Diff two service versions. By default, diffs the active version of the service assumed from the current directory with the local VCL in the current directory. Options allow you to specify different versions and different services."
-    option :version1
-    option :version2
-    option :service1
-    option :service2
-    option :generated
+    method_option :version1, :aliases => ["--v1"]
+    method_option :version2, :aliases => ["--v2"]
+    method_option :service1, :aliases => ["--s1"]
+    method_option :service2, :aliases => ["--s2"]
+    method_option :generated, :aliases => ["--g"]
     def diff
       if !options[:service1]
         service1 = VCL::Utils.parse_directory
