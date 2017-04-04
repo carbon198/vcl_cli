@@ -93,29 +93,40 @@ module VCL
     def self.get_active_version(id)
       service = self.api_request(:get, "/service/#{id}")
 
+      max = 1
+
       service["versions"].each do |v|
         if v["active"] == true
           return v["number"]
         end
+
+        max = v["number"] if v["number"] > max
       end
+
+      return max
     end
 
     def self.get_writable_version(id)
       service = self.api_request(:get, "/service/#{id}")
 
-      active = nil
-      version = nil
+      active = false
+      version = false
+      max = 1
       service["versions"].each do |v|
         if v["active"] == true
           active = v["number"].to_i
         end
 
-        if active != nil && v["number"].to_i > active && v["locked"] == false     
+        if active && v["number"].to_i > active && v["locked"] == false
           version = v["number"]
         end
+
+        max = version if version && version > max
       end
 
-      version = self.api_request(:put, "/service/#{id}/version/#{active}/clone")["number"] if version == nil
+      return max unless active
+
+      version = self.api_request(:put, "/service/#{id}/version/#{active}/clone")["number"] unless version
 
       return version
     end
