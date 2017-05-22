@@ -1,8 +1,9 @@
 module VCL
   class CLI < Thor
-    desc "token ACTION", "Manipulate API tokens. Available actions are list, create, and delete. Scope defaults to admin:write."
+    desc "token ACTION", "Manipulate API tokens. Available actions are list, create, and delete. Scope defaults to admin:write. Options are --scope and --services. --services should be a comma separated list of services to restrict this token to."
     method_option :customer, :aliases => ["--c"]
-    option :scope # let's not alias this to `s` since that is for service the rest of the time
+    method_option :services, :aliases => ["--s"]
+    option :scope
     def token(action)
       case action
       when "list"
@@ -17,7 +18,7 @@ module VCL
 
       when "create"
         scope = options[:scope]
-        scope ||= "admin:write"
+        scope ||= "global"
 
         say("You must login again to create tokens.")
 
@@ -25,7 +26,19 @@ module VCL
 
         name = ask("What would you like to name your token?")
 
-        resp = VCL::Fetcher.create_token(login_results[:user],login_results[:pass],login_results[:code],scope,name)
+        o = {
+          user: login_results[:user],
+          pass: login_results[:pass],
+          code: login_results[:code],
+          scope: scope,
+          name: name
+        }
+
+        o[:services] = options[:services].split(",") if options[:services]
+
+        o[:customer] = options[:customer] if options[:customer]
+
+        resp = VCL::Fetcher.create_token(o)
 
       when "delete"
         id = ask("What is the ID of the token you'd like to delete?")

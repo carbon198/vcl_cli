@@ -1,14 +1,17 @@
 module VCL
   class CLI < Thor
-    desc "watch", "Watch live stats on a service"
+    desc "watch POP", "Watch live stats on a service. Optionally specify a POP by airport code."
     method_option :service, :aliases => ["--s"]
-    def watch
+    def watch(pop=false)
       service = options[:service]
       service ||= VCL::Utils.parse_directory
 
       abort "could not parse service id from directory" unless service
 
       ts = false
+
+      pop = pop.upcase if pop
+
       while true
         data = VCL::Fetcher.api_request(:get,"/rt/v1/channel/#{service}/ts/#{ts ? ts : 'h/limit/120'}", :endpoint => :app)
         
@@ -17,7 +20,14 @@ module VCL
           abort
         end
 
-        agg = data["Data"][0]["aggregated"]
+        if pop
+          unless data["Data"][0]["datacenter"].key?(pop)
+            abort "Could not locate #{pop} in data feed."
+          end
+          agg = data["Data"][0]["datacenter"][pop]
+        else 
+          agg = data["Data"][0]["aggregated"]
+        end
 
         rps = agg["requests"]
         # gbps

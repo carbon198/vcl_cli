@@ -188,30 +188,35 @@ module VCL
       return { user: user, pass: pass, two_factor: two_factor, code: code }
     end
 
-    def self.create_token(user,pass,code,scope,name)
+    def self.create_token(options)
       thor = Thor::Shell::Basic.new
 
       headers = {}
-      headers["Fastly-OTP"] = code if code
+      headers["Fastly-OTP"] = options[:code] if options[:code]
 
       VCL::Fetcher.api_request(:post, "/sudo", {
         force_session: true,
         endpoint: :api,
         params: {
-          user: user,
-          password: pass
+          user: options[:user],
+          password: options[:pass]
         },
         headers: headers
       })
+
+      params = {
+          name: options[:name],
+          scope: options[:scope],
+          user: options[:user],
+          password: options[:pass]
+      }
+
+      params[:services] = options[:services] if options[:services]
+
       resp = VCL::Fetcher.api_request(:post, "/tokens", {
         force_session: true,
         endpoint: :api,
-        params: {
-          name: name,
-          scope: scope,
-          user: user,
-          password: pass
-        },
+        params: params,
         headers: headers
       })
 

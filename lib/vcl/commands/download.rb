@@ -1,6 +1,6 @@
 module VCL
   class CLI < Thor
-    desc "download VCL_NAME=all", "Download VCLs. If no name is specified, downloads all the VCLs on the service."
+    desc "download VCL_NAME", "Download VCLs. If no name is specified, downloads all the VCLs on the service."
     method_option :service, :aliases => ["--s"]
     method_option :version, :aliases => ["--v"]
     method_option :generated, :aliases => ["--g"]

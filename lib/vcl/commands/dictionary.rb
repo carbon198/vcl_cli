@@ -1,6 +1,6 @@
 module VCL
   class CLI < Thor
-    desc "dictionary ACTION DICTIONARY_NAME=none KEY=none VALUE=none", "Manipulate edge dictionaries. Actions: create: Create a dictionary\n
+    desc "dictionary ACTION DICTIONARY_NAME KEY VALUE", "Manipulate edge dictionaries. Actions: create: Create a dictionary\n
     delete: Delete a dictionary\n
     list: Provide a list of dictionaries on this service\n
     upsert: Update a key in a dictionary if it exists. Add the key if it does not.\n
