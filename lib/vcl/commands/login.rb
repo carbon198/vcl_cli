@@ -15,7 +15,15 @@ module VCL
 
       scope = login_results[:user].include?("@fastly.com") ? "root" : "global"
 
-      resp = VCL::Fetcher.create_token(login_results[:user],login_results[:pass],login_results[:code],scope,"vcl_cli_token")
+      o = {
+        user: login_results[:user],
+        pass: login_results[:pass],
+        code: login_results[:code],
+        scope: scope,
+        name: "vcl_cli_token"
+      }
+
+      resp = VCL::Fetcher.create_token(o)
 
       token = resp["access_token"]
       token_id = resp["id"]
