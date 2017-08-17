@@ -19,12 +19,13 @@ module VCL
             name: host,
           }
         })
-        puts "#{host} created on #{id} version #{version}"
+        say("#{host} created on #{id} version #{version}")
       when "delete"
         VCL::Fetcher.api_request(:delete,"/service/#{id}/version/#{version}/domain/#{host}")
-        puts "#{host} deleted on #{id} version #{version}"
+        say("#{host} deleted on #{id} version #{version}")
       when "list"
         domains = VCL::Fetcher.api_request(:get,"/service/#{id}/version/#{version}/domain")
+        say("Listing all domains for #{id} version #{version}")
         domains.each do |d|
           puts d["name"]
         end
@@ -36,7 +37,7 @@ module VCL
         end
 
         domains.each do |d|
-          puts "#{d[0]["name"]} -> #{d[1]}"
+          say("#{d[0]["name"]} -> #{d[1]}")
         end
       else
         abort "#{action} is not a valid command"

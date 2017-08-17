@@ -16,6 +16,7 @@ require "vcl/commands/login"
 require "vcl/commands/watch"
 require "vcl/commands/token"
 require "vcl/commands/domain"
+require "vcl/commands/snippet"
 
 module VCL
   class CLI < Thor

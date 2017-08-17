@@ -145,6 +145,23 @@ module VCL
       end
     end
 
+    def self.get_snippets(id,version)
+      snippet = self.api_request(:get, "/service/#{id}/version/#{version}/snippet")
+
+      if snippet.length == 0
+        return false
+      else
+        return snippet
+      end
+    end
+
+    def self.upload_snippet(service,version,content,name)
+      return VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/snippet/#{name}", {:endpoint => :api, params: {
+          content: content
+        }
+      })
+    end
+
     def self.upload_vcl(service,version,content,name,is_main=true,is_new=false)
       params = { name: name, main: "#{is_main ? "1" : "0"}", content: content }
 
