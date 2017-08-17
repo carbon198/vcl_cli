@@ -156,7 +156,7 @@ module VCL
     end
 
     def self.upload_snippet(service,version,content,name)
-      return VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/snippet/#{name}", {:endpoint => :api, params: {
+      return VCL::Fetcher.api_request(:put, "/service/#{service}/version/#{version}/snippet/#{name}", {:endpoint => :api, body: {
           content: content
         }
       })
