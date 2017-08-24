@@ -171,7 +171,7 @@ vcl login
 
 ### move
 
-[Admin only] Move a service from one customer to another.
+[Admin only] Move a service from one customer to another. Multiple service IDs may be comma separated.
 
 Usage:
 
