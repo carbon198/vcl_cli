@@ -31,13 +31,13 @@ module VCL
       end
 
       vcl = VCL::Fetcher.get_vcl(id, version)
+      snippet = VCL::Fetcher.get_snippets(id, version)
 
       folder_name = parsed ? "./" : "#{service["name"]} - #{service["id"]}/"
       Dir.mkdir(folder_name) unless (File.directory?(folder_name) || parsed)
 
       if vcl
-
-      vcl.each do |v,k|
+        vcl.each do |v,k|
           next if (vcl_name && vcl_name != v["name"])
 
           filename = "#{folder_name}#{v["name"]}.vcl"
@@ -53,8 +53,27 @@ module VCL
 
           say("VCL content for version #{version} written to #{filename}")
         end
-      else
-        say("No VCLs on this service, however a folder has been created. Create VCLs in this folder and upload.")
+      end
+
+      if snippet
+        snippet.each do |s,k|
+          filename = "#{folder_name}#{s["name"]}.snippet"
+
+          if File.exist?(filename)
+            unless yes?("Are you sure you want to overwrite #{filename}")
+              say("Skipping #{filename}")
+              next
+            end
+          end
+
+          File.open(filename, 'w+') {|f| f.write(s["content"]) }
+
+          say("Snippet content for version #{version} written to #{filename}")
+        end
+      end
+
+      unless vcl || snippet
+        say("No VCLs or snippets on this service, however a folder has been created. Create VCLs in this folder and upload.")
       end
     end
   end
