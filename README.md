@@ -42,7 +42,7 @@ Version 286 on 72rdJo8ipqaHRFYnn12G2q activated.
 
 Once you are past this point you can edit your VCLs and use the commmand `vcl upload && vcl activate`. The service ID will be automatically inferred from the folder you are currently in. In fact, all commands will attempt to assume the service ID of the current directory if it is relevant.
 
-You may find it useful to keep a Github repo with one folder created by this command for each directory. This way you can version your VCL files.
+You may find it useful to keep a Github repo with one folder created by this command for each service. This way you can version your VCL files.
 
 ## Command Reference
 
