@@ -186,7 +186,7 @@ Opens the Fastly app for a service.
 Usage:
 
 ```
-vcl open
+vcl open [hostname]
 ```
 
 Flags:
