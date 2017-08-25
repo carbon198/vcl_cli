@@ -93,7 +93,7 @@ Manipulate edge dictionaries on a service.
 Usage:
 
 ```
-dictionary [action] [dictionary_name] [key] [value]
+vcl dictionary [action] [dictionary_name] [key] [value]
 ```
 
 Available Actions:
@@ -181,7 +181,7 @@ vcl move [sid] [cid]
 
 ### open
 
-Opens the Fastly app for a service.
+Opens the Fastly app for a service for a hostname of a service ID.
 
 Usage:
 
