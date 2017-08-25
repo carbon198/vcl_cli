@@ -250,7 +250,7 @@ Available Actions:
   * list: List all tokens on the account
 
 Flags:
-  * --scope: Scope of the token. See Fastly's public API documentation for a list of scopes.
+  * --scope: Scope of the token. See Fastly's public API documentation for a [list of scopes](https://docs.fastly.com/api/auth#scopes).
   * --s: The services to restrict this token to. The token cannot be used to modify any services not on this list if this option is specified.
 
 ### upload
