@@ -6,7 +6,7 @@ module VCL
       service = VCL::Fetcher.api_request(:post, "/service", { params: { name: name }})
 
       if options[:customer]
-        say("This command works by creating a service on your account and moving it to the target account. It will prompt you for your password.")
+        say("This command works by creating a service on your account and moving it to the target account.")
         self.move(service["id"],options[:customer])
       end
 
