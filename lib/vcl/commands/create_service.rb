@@ -1,6 +1,6 @@
 module VCL
   class CLI < Thor
-    desc "create_service SERVICE_NAME", "Create a blank service. If --customer is supplied and you are an admin, the command will ask for a password and then move the service to that customer's account."
+    desc "create_service SERVICE_NAME", "Create a blank service. If --customer is supplied and you are an admin, the command will move the service to that customer's account."
     method_option :customer, :aliases => ["--c"]
     def create_service(name)
       service = VCL::Fetcher.api_request(:post, "/service", { params: { name: name }})
