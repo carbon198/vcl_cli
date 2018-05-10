@@ -84,7 +84,7 @@ vcl create_service [name]
 ```
 
 Flags:
-  * --c: [Admin only] The customer ID to create the service on. Requires entering your password.
+  * --c: [Admin only] The customer ID to create the service on.
 
 ### dictionary
 
