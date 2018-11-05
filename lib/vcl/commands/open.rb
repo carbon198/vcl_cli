@@ -15,7 +15,7 @@ module VCL
       else
         id = VCL::Utils.parse_directory
 
-        abort "Could not parse service id from directory and no domain/service supplied" unless id
+        abort "Could not parse service id from directory. Use the --s <service> flag OR vcl open <domain>." unless id
       end
 
       VCL::Utils.open_service(id)

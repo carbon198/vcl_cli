@@ -6,7 +6,7 @@ module VCL
       service = options[:service]
       service ||= VCL::Utils.parse_directory
 
-      abort "could not parse service id from directory" unless service
+      abort "Could not parse service id from directory. Use --s <service> to specify, vcl download, then try again." unless service
 
       ts = false
 

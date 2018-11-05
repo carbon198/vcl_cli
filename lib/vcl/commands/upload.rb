@@ -5,7 +5,7 @@ module VCL
     def upload
       id = VCL::Utils.parse_directory
 
-      abort "could not parse service id from directory" unless id
+      abort "Could not parse service id from directory. Use -s <service> to specify, vcl download, then try again." unless id
 
       vcls = {}
       snippets = {}

@@ -6,7 +6,7 @@ module VCL
     def waf
       if !options[:service]
         id = VCL::Utils.parse_directory
-        abort "Could not parse service id from directory" unless id
+        abort "Could not parse service id from directory. Use --s <service> to specify, vcl download, then try again." unless id
       else
         id = options[:service]
       end
