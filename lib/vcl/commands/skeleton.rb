@@ -5,7 +5,7 @@ module VCL
     def skeleton(name="main")
       id = VCL::Utils.parse_directory unless options[:service]
       id ||= options[:service]
-      abort "could not parse service id from directory" unless id
+      abort "Could not parse service id from directory. Use --s <service> to specify, vcl download, then try again." unless id
 
       filename = "#{name}.vcl"
       version = VCL::Fetcher.get_active_version(id)

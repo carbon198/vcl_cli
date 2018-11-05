@@ -7,7 +7,7 @@ module VCL
 
       id = VCL::Utils.parse_directory
 
-      abort "could not parse service id from directory" unless (id || options[:service])
+      abort "Could not parse service id from directory. Use --s <service> to specify, vcl download, then try again." unless (id || options[:service])
 
       VCL::Fetcher.api_request(:post, "/service/#{id}/purge_all")
 

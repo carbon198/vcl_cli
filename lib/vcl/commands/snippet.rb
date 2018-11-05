@@ -8,7 +8,7 @@ module VCL
       id = VCL::Utils.parse_directory unless options[:service]
       id ||= options[:service]
 
-      abort "could not parse service id from directory" unless id
+      abort "Could not parse service id from directory. Use --s <service> to specify, vcl download, then try again." unless id
 
       version = VCL::Fetcher.get_writable_version(id) unless options[:version]
       version ||= options[:version].to_i
