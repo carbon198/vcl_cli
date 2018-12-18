@@ -7,40 +7,49 @@ module VCL
     method_option :service2, :aliases => ["--s2"]
     method_option :generated, :aliases => ["--g"]
     def diff
-      if !options[:service1]
+      if options[:service1]
+        service1 = options[:service1]
+      else
         service1 = VCL::Utils.parse_directory
         abort "Could not parse service id from directory" unless service1
-      else
-        service1 = options[:service1]
       end
-      if !options[:service2]
+      if options[:service2]
+        service2 = options[:service2]
+      else
         service2 = VCL::Utils.parse_directory
 
         # use service1 for both if unspecified
         service2 = service1 unless service2
-      else
-        service2 = options[:service2]
       end
 
-      # if both are specified, diff them
-      if options[:version1] && options[:version2]
-        version1 = options[:version1]
-        version2 = options[:version2]
+      # diffing different services - no references to local vcl here
+      if service1 != service2
+        version1 = options.key?(:version1) ? options[:version1] : VCL::Fetcher.get_active_version(service1)
+        version2 = options.key?(:version2) ? options[:version2] : VCL::Fetcher.get_active_version(service2)
       end
-      # if version1 is not specified, diff local with version 2
-      if !options[:version1] && options[:version2]
-        version1 = false
-        version2 = options[:version2]
-      end
-      # if version2 is not specified, diff local with version 1
-      if options[:version1] && !options[:version2]
-        version1 = options[:version1]
-        version2 = false
-      end
-      # if neither are specified, diff local with active version
-      if !options[:version1] && !options[:version2]
-        version1 = VCL::Fetcher.get_active_version(service2)
-        version2 = false
+
+      # diffing the same service
+      if service1 == service2
+        # if both are specified, diff them
+        if options[:version1] && options[:version2]
+          version1 = options[:version1]
+          version2 = options[:version2]
+        end
+        # if version1 is not specified, diff local with version 2
+        if !options[:version1] && options[:version2]
+          version1 = false
+          version2 = options[:version2]
+        end
+        # if version2 is not specified, diff local with version 1
+        if options[:version1] && !options[:version2]
+          version1 = options[:version1]
+          version2 = false
+        end
+        if !options[:version1] && !options[:version2]
+          # if neither are specified, diff local with active version
+          version1 = VCL::Fetcher.get_active_version(service2)
+          version2 = false
+        end
       end
 
       say("Diffing#{options[:generated] ? " generated VCL for" : ""} #{service1} #{version1 ? "version "+version1.to_s : "local VCL"} with #{service2} #{version2 ? "version "+version2.to_s : "local VCL"}.")

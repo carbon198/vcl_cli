@@ -12,15 +12,26 @@ module VCL
 
       active_version = VCL::Fetcher.get_active_version(target_id)
 
-      domain_count = VCL::Fetcher.api_request(:get,"/service/#{target_id}/version/#{result["number"]}/domain").count
       domains = VCL::Fetcher.api_request(:get,"/service/#{target_id}/version/#{active_version}/domain")
-      abort if domain_count > 0
+      domains_that_where_copied = VCL::Fetcher.api_request(:get,"/service/#{target_id}/version/#{result["number"]}/domain")
 
-      say("Restoring domains that were lost during cloning.")
+      say("Restoring domains that were lost during cloning (if any)...")
       domains.each do |d|
+        copied = false
+        domains_that_where_copied.each do |c|
+          if d["name"] == c["name"]
+            copied = true
+            break
+          end
+        end
+
+        next if copied === true
+
         VCL::Fetcher.api_request(:post,"/service/#{target_id}/version/#{result["number"]}/domain", {
-            params: { name: d["name"], comment: d["comment"] }
-          })
+          params: { name: d["name"], comment: d["comment"] }
+        })
+
+        say("Restoring domain: #{d["name"]}...")
       end
     end
   end
