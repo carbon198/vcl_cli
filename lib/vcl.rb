@@ -5,6 +5,7 @@ require "json"
 require "uri"
 require "launchy"
 require "erb"
+require "pp"
 
 require "vcl/version"
 require "vcl/fetcher"

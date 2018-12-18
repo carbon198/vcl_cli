@@ -1,5 +1,3 @@
-require "pp"
-
 require "vcl/commands/purge_all"
 require "vcl/commands/open"
 require "vcl/commands/download"
