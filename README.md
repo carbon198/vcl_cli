@@ -111,7 +111,14 @@ Flags:
 
 ### diff
 
-Provides a diff of two service versions. You may optionally specify which two service IDs and which two versions to diff. If you do not provide service IDs, the context of the current working directory is assumed. If you only provide one version, the current directory's VCL will be diffed against the specified version. If no versions are specified, the current directory's VCL will be diffed against the active version.
+Provides a diff of two service versions. You may optionally specify which two service IDs and which two versions to diff. If you do not provide service IDs, the context of the current working directory is assumed. 
+
+ * If you provide no service IDs, the service ID of the working directory is assumed.
+  * If you do not specify versions, active VCL will be diffed with local VCL in the current directory.
+  * If you specify version 1 but not version 2, version 1 will be diffed with local VCL
+  * If you specify both versions, they will be diffed with each other.
+ * If you provide service 1 but not service 2, service 2 will be assumed from the current working directory.
+ * Regardless of how you specify services, if service 1 and service 2 are _different_, the versions will default to the active versions instead of local VCL.
 
 Usage:
 
@@ -119,10 +126,10 @@ Usage:
 vcl diff
 ```
 
-  * --s1: The first service to diff against. The current working directory is assumed.
-  * --v1: The version to diff. The currently active version is assumed.
-  * --s2: The second service to diff against. The value of --s1 is assumed.
-  * --v2: The second service's version to diff. The currently active version is assumed.
+  * --s1: The first service to diff against.
+  * --v1: The version to diff.
+  * --s2: The second service to diff against.
+  * --v2: The second service's version to diff.
   * --g: Diffs the generated VCL instead of the custom VCL.
 
 ### domain
