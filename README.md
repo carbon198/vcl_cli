@@ -59,6 +59,7 @@ vcl activate
 Flags: 
   * --s: The service ID to activate. Current working directory is assumed.
   * --v: The version to activate. Latest writable version is assumed.
+  * --c: Adds a comment to the version.
  
 ### clone
 
@@ -272,6 +273,7 @@ vcl upload
 
 Flags:
   * --v: The version to upload the VCL to. The latest writable version is assumed.
+  * --c: Adds a comment to the version.
 
 ### watch
 

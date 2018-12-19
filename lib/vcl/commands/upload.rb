@@ -2,6 +2,7 @@ module VCL
   class CLI < Thor
     desc "upload", "Uploads VCL in the current directory to the service."
     method_option :version, :aliases => ["--v"]
+    method_option :comment, :aliases => ["--c"]
     def upload
       id = VCL::Utils.parse_directory
 
@@ -122,6 +123,12 @@ module VCL
         VCL::Fetcher.upload_snippet(id, writable_version, s["content"], s["name"])
 
         say("#{s["name"]} uploaded to #{id}")
+      end
+
+      if options.key?(:comment)
+        VCL::Fetcher.api_request(:put, "/service/#{id}/version/#{writable_version}",{
+          params: {comment: options[:comment]}
+        })
       end
 
       validation = VCL::Fetcher.api_request(:get, "/service/#{id}/version/#{writable_version}/validate")
