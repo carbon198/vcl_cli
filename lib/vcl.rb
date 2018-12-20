@@ -22,5 +22,5 @@ module VCL
   TANGO_PATH = "/configure/services/"
 
   Cookies = File.exist?(VCL::COOKIE_JAR) ? JSON.parse(File.read(VCL::COOKIE_JAR)) : {}
-  Token = File.exist?(VCL::TOKEN_FILE) ? File.read(VCL::TOKEN_FILE) : false
-end
+  # Don't allow header splitting with the key
+  Token = File.exist?(VCL::TOKEN_FILE) ? File.read(VCL::TOKEN_FILE).gsub(/\r|\n/,'') : false
