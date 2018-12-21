@@ -18,6 +18,8 @@ require "vcl/commands/snippet"
 
 module VCL
   class CLI < Thor
+    class_option :debug, :desc => 'Enabled debug mode output'
+
     def initialize(a,b,c)
       unless File.exist?(VCL::TOKEN_FILE)
         if yes?("Unable to locate API token. Would you like to login first?")
@@ -26,6 +28,10 @@ module VCL
       end
 
       super
+
+      if options.key?(:debug)
+        Typhoeus::Config.verbose = true
+      end
     end
 
     desc "version", "Displays version of the VCL gem."
