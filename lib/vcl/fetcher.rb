@@ -29,6 +29,11 @@ module VCL
 
       headers.merge!(options[:headers]) if options[:headers].count > 0
 
+      # dont allow header splitting on anything
+      headers.each do |k,v|
+        headers[k] = v.gsub(/\r|\n/,'')
+      end
+
       url = "#{options[:endpoint] == :api ? VCL::FASTLY_API : VCL::FASTLY_APP}#{path}"
 
       response = Typhoeus::Request.new(
