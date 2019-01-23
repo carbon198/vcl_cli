@@ -33,7 +33,12 @@ module VCL
       vcl = VCL::Fetcher.get_vcl(id, version)
       snippet = VCL::Fetcher.get_snippets(id, version)
 
-      folder_name = parsed ? "./" : "#{service["name"]} - #{service["id"]}/"
+      sname = service["name"]
+      if sname.include? "/"
+        sname = sname.tr("/","_")
+      end
+
+      folder_name = parsed ? "./" : "#{sname} - #{service["id"]}/"
       Dir.mkdir(folder_name) unless (File.directory?(folder_name) || parsed)
 
       if vcl
